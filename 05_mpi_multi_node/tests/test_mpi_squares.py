@@ -39,7 +39,8 @@ def test_local_squares_and_checksum():
     big = np.array([MAX_N], dtype=np.int64)
     assert int(big[0]) ** 2 < 2**63  # int64 is exact up to MAX_N
     assert squares_checksum(np.array([1, 4, 9])) == 14
-    assert peak_rss_mb() > 0
+    rss = peak_rss_mb()
+    assert rss > 0 or rss != rss  # NaN on Windows
 
 
 # ---------- T3 property ----------

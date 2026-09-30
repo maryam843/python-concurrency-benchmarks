@@ -12,7 +12,6 @@ int64 is exact for squares up to n = 3,037,000,499.
 
 from __future__ import annotations
 
-import resource
 import sys
 
 import numpy as np
@@ -39,7 +38,11 @@ def local_squares(start: int, count: int) -> np.ndarray:
 
 
 def peak_rss_mb() -> float:
-    """Peak resident memory of this process in MB (Linux reports KB, macOS bytes)."""
+    """Peak resident memory of this process in MB (Linux reports KB, macOS bytes; not available on Windows)."""
+    try:
+        import resource
+    except ImportError:  # pragma: no cover - Windows
+        return float("nan")
     rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     return rss / (1024 * 1024) if sys.platform == "darwin" else rss / 1024
 
