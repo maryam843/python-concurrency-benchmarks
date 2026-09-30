@@ -48,14 +48,20 @@ ALLOWED_IPS = {"127.0.0.1", "0.0.0.0"}
 TOKEN_RE = re.compile(r"[A-Za-z0-9_@.+-]+")
 EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}")
 IPV4_RE = re.compile(r"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])")
-PATH_RE = re.compile(r"(/home/[A-Za-z0-9_.-]+|/Users/[A-Za-z0-9_.-]+|[A-Za-z]:\\\\?Users\\\\?[A-Za-z0-9_.-]+)")
+PATH_RE = re.compile(
+    r"(/home/[A-Za-z0-9_.-]+|/Users/[A-Za-z0-9_.-]+|[A-Za-z]:\\\\?Users\\\\?[A-Za-z0-9_.-]+)"
+)
 SECRET_RES = {
     "aws_access_key": re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
-    "github_token": re.compile(r"\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{30,}\b|\bgithub_pat_[A-Za-z0-9_]{40,}\b"),
+    "github_token": re.compile(
+        r"\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{30,}\b|\bgithub_pat_[A-Za-z0-9_]{40,}\b"
+    ),
     "slack_token": re.compile(r"\bxox[abprs]-[A-Za-z0-9-]{10,}\b"),
     "sk_prefixed_key": re.compile(r"\bsk-[A-Za-z0-9_-]{20,}\b"),
     "private_key": re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----"),
-    "password_assignment": re.compile(r"(?i)\b(?:password|passwd|secret|api_key)\s*[:=]\s*['\"][^'\"\s]{6,}['\"]"),
+    "password_assignment": re.compile(
+        r"(?i)\b(?:password|passwd|secret|api_key)\s*[:=]\s*['\"][^'\"\s]{6,}['\"]"
+    ),
 }
 
 
@@ -90,7 +96,8 @@ def is_binary(data: bytes) -> bool:
 
 def scan_history(repo: Path) -> list[str]:
     hits: list[str] = []
-    meta = _git(repo, "log", "--all", "--format=%H%x00%an%x00%ae%x00%cn%x00%ce%x00%B%x01").decode("utf-8", "replace")
+    fmt = "--format=%H%x00%an%x00%ae%x00%cn%x00%ce%x00%B%x01"
+    meta = _git(repo, "log", "--all", fmt).decode("utf-8", "replace")
     for rec in meta.split("\x01"):
         rec = rec.strip("\n")
         if not rec:
