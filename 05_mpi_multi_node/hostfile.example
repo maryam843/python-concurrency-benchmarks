@@ -1,0 +1,4 @@
+# Copy to hostfile, replace node1/node2 with your own machine names, and set up passwordless SSH
+# from the first machine to the others (see README). Each machine needs the same Python env and code path.
+node1 slots=2
+node2 slots=2
