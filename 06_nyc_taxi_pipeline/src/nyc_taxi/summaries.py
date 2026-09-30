@@ -30,6 +30,7 @@ def summarise_frame(df: pd.DataFrame, month: str) -> dict:
         "rows_raw": rows_raw,
         "rows_clean": len(good),
         "removed": removed,
+        "passenger_count_missing_raw": int(df["passenger_count"].isna().sum()),
         "fare_sum": float(good["fare_amount"].sum()),
         "distance_sum": float(good["trip_distance"].sum()),
         "duration_min_sum": float(duration_min.sum()),
@@ -60,6 +61,7 @@ def combine(months: list[dict]) -> dict:
         dist += m["distance_sum"]
         dur += m["duration_min_sum"]
     rows_raw = sum(m["rows_raw"] for m in months)
+    pax_missing = sum(m["passenger_count_missing_raw"] for m in months)
     rows_clean = sum(m["rows_clean"] for m in months)
     top10 = sorted(zones.items(), key=lambda kv: (-kv[1], kv[0]))[:10]
     return {
@@ -68,6 +70,8 @@ def combine(months: list[dict]) -> dict:
         "rows_clean": rows_clean,
         "removed": removed,
         "removed_share": (rows_raw - rows_clean) / rows_raw if rows_raw else 0.0,
+        "passenger_count_missing_raw": pax_missing,
+        "passenger_count_missing_share": pax_missing / rows_raw if rows_raw else 0.0,
         "mean_fare": fare / rows_clean if rows_clean else 0.0,
         "mean_distance_mi": dist / rows_clean if rows_clean else 0.0,
         "mean_duration_min": dur / rows_clean if rows_clean else 0.0,

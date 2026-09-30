@@ -134,6 +134,8 @@ def test_yearly_summary_matches_pandas(reference):
     top = sorted(top.items(), key=lambda kv: (-kv[1], kv[0]))[:10]
     assert [(d["zone_id"], d["trips"]) for d in y["top10_pickup_zones"]] == [(int(a), int(b)) for a, b in top]
     assert set(y["removed"]) == set(RULES)
+    raw = pd.concat([pd.read_parquet(p) for p in PATHS])
+    assert y["passenger_count_missing_raw"] == raw.passenger_count.isna().sum() > 0
 
 
 def test_empty_month_summary():
