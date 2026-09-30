@@ -43,10 +43,11 @@ def _save(fig, name: str) -> Path:
     return path
 
 
-def _line(ax, xs, ys, i, label):
+def _line(ax, xs, ys, i, label, dy=0):
     ax.plot(xs, ys, color=SERIES[i], lw=2, marker="o", ms=8, mec=SURFACE, mew=2, label=label, zorder=3)
-    ax.annotate(label, (xs[-1], ys[-1]), xytext=(6, 0), textcoords="offset points", va="center",
+    ax.annotate(label, (xs[-1], ys[-1]), xytext=(8, dy), textcoords="offset points", va="center",
                 color=INK2, fontsize=9)
+    ax.set_xlim(right=xs[-1] * 1.35)  # room for the end label
 
 
 def _ideal(ax, xs):
@@ -66,12 +67,17 @@ def fig_taxi_speedup() -> Path | None:
     ax.set_xlabel("threads")
     ax.set_ylabel("speedup vs sequential")
     ax = axes[1]
+    ends = {}
+    for method in ("threads", "processes"):
+        ends[method] = [r["speedup"] for r in s2["rows"] if r["method"] == method][-1]
     for i, method in enumerate(("threads", "processes")):
         rows = [r for r in s2["rows"] if r["method"] == method]
         xs = [r["workers"] for r in rows]
         if i == 0:
             _ideal(ax, xs)
-        _line(ax, xs, [r["speedup"] for r in rows], i, method)
+        other = ends["processes" if method == "threads" else "threads"]
+        dy = 0 if abs(ends[method] - other) > 0.4 else (7 if ends[method] >= other else -7)
+        _line(ax, xs, [r["speedup"] for r in rows], i, method, dy)
     ax.set_title("Stage 2: clean + summarise (CPU)", loc="left", fontsize=10)
     ax.set_xlabel("workers")
     ax = axes[2]
