@@ -11,7 +11,7 @@ license = "MIT"
 authors = [{ name = "Maryam Mahaboob" }]
 
 [tool.setuptools]
-packages = ["bench_common", "threads_vs_processes", "parallel_sum", "connection_pool", "sensor_monitor"]
+packages = ["bench_common", "threads_vs_processes", "parallel_sum", "connection_pool", "sensor_monitor", "mpi_squares"]
 
 [tool.setuptools.package-dir]
 bench_common = "src/bench_common"
@@ -19,6 +19,7 @@ threads_vs_processes = "01_threads_vs_processes/src/threads_vs_processes"
 parallel_sum = "02_parallel_sum/src/parallel_sum"
 connection_pool = "03_connection_pool/src/connection_pool"
 sensor_monitor = "04_sensor_monitor/src/sensor_monitor"
+mpi_squares = "05_mpi_multi_node/src/mpi_squares"
 
 [tool.ruff]
 line-length = 120
