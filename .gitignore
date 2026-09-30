@@ -30,3 +30,6 @@ htmlcov/
 # Secrets
 .env
 .env.*
+
+# Demo logs written by 03_connection_pool/main.py
+outputs/
