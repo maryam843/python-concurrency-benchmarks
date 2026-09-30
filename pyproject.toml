@@ -11,11 +11,12 @@ license = "MIT"
 authors = [{ name = "Maryam Mahaboob" }]
 
 [tool.setuptools]
-packages = ["bench_common", "threads_vs_processes"]
+packages = ["bench_common", "threads_vs_processes", "parallel_sum"]
 
 [tool.setuptools.package-dir]
 bench_common = "src/bench_common"
 threads_vs_processes = "01_threads_vs_processes/src/threads_vs_processes"
+parallel_sum = "02_parallel_sum/src/parallel_sum"
 
 [tool.ruff]
 line-length = 110
