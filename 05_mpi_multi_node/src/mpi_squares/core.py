@@ -32,9 +32,10 @@ def chunk_counts(n: int, size: int) -> tuple[list[int], list[int]]:
 
 
 def local_squares(start: int, count: int) -> np.ndarray:
-    """Squares of start+1 .. start+count as int64."""
+    """Squares of start+1 .. start+count as int64, squared in place (x * x would allocate a second array)."""
     x = np.arange(start + 1, start + count + 1, dtype=np.int64)
-    return x * x
+    np.multiply(x, x, out=x)
+    return x
 
 
 def peak_rss_mb() -> float:
