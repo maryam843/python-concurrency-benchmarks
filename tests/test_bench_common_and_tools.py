@@ -98,3 +98,24 @@ def test_fixture_generator_is_reproducible(tmp_path):
     a = mk.make_air_quality(tmp_path / "a.csv")
     b = mk.make_air_quality(tmp_path / "b.csv")
     assert a.read_text() == b.read_text() == (REPO / "tests/fixtures/air_quality_tiny.csv").read_text()
+
+
+# ---------- T11 claims checker logic ----------
+def test_claims_checker(tmp_path, monkeypatch):
+    chk = _load_tool("check_readme_claims")
+    (tmp_path / "r").mkdir()
+    (tmp_path / "r" / "x.json").write_text(json.dumps({"rows": [{"a": 1, "v": 4.2}, {"a": 2, "v": 9.0}], "t": 1.5}))
+    monkeypatch.setattr(chk, "RESULTS", tmp_path / "r")
+    good = tmp_path / "good.md"
+    good.write_text("Speed **4.20x**<!-- claim: x.json | rows[a=1].v | {:.2f}x --> and "
+                    "1.5 s<!-- claim: x.json | t | {:.1f} s -->.\n"
+                    "Old 6.79 s from a saved file <!-- 2025 evidence -->\n")
+    assert chk.check_file(good) == []
+    bad = tmp_path / "bad.md"
+    bad.write_text("Speed 4.30x<!-- claim: x.json | rows[a=1].v | {:.2f}x -->. Unbacked 3.3x here.\n"
+                   "Broken <!-- claim: x.json | rows[a=7].v | {:.2f}x -->\n")
+    errors = chk.check_file(bad)
+    assert any("claim says '4.20x'" in e for e in errors)
+    assert any("unclaimed number '3.3x'" in e for e in errors)
+    assert any("matched 0 items" in e for e in errors)
+    assert chk.select({"a": [{"k": 1, "v": [5, 6]}]}, "a[k=1].v.1") == 6
