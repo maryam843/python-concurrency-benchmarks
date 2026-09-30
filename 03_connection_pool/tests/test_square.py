@@ -4,13 +4,15 @@ Unit tests for parallel square functions.
 """
 
 import unittest
+
 from connection_pool.square import (
-    square,
-    sequential_squares,
+    concurrent_futures,
     multiprocessing_squares,
+    pool_apply_async,
+    pool_apply_async_chunked,
     pool_map,
-    pool_apply,
-    concurrent_futures
+    sequential_squares,
+    square,
 )
 
 
@@ -32,8 +34,11 @@ class TestSquareFunctions(unittest.TestCase):
     def test_pool_map(self):
         self.assertEqual(pool_map(self.numbers), self.expected)
 
-    def test_pool_apply(self):
-        self.assertEqual(pool_apply(self.numbers), self.expected)
+    def test_pool_apply_async(self):
+        self.assertEqual(pool_apply_async(self.numbers), self.expected)
+
+    def test_pool_apply_async_chunked(self):
+        self.assertEqual(pool_apply_async_chunked(self.numbers), self.expected)
 
     def test_concurrent_futures(self):
         self.assertEqual(concurrent_futures(self.numbers), self.expected)

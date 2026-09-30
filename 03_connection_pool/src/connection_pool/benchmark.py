@@ -47,7 +47,7 @@ def benchmark(sizes: list[int], workers: int, repeats: int, slow_repeats: int,
                 skipped.append({"n": n, "method": name, "reason": "one task per item does not scale; see docstring"})
                 continue
             reps = slow_repeats if name == "apply_async_per_item" and n >= 10**6 else repeats
-            stats, out = time_repeats(lambda fn=fn: fn(numbers), reps)
+            stats, out = time_repeats(lambda fn=fn, numbers=numbers: fn(numbers), reps)
             if out != expected:
                 raise AssertionError(f"{name} returned wrong squares for n={n}")
             if name == "sequential":
