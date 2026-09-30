@@ -1,5 +1,7 @@
 import unittest
+
 from parallel_sum.functions import calculate_sum_sequential
+
 
 class TestSequentialSum(unittest.TestCase):
     def test_sum(self):

@@ -1,5 +1,7 @@
 import unittest
+
 from parallel_sum.threads import calculate_sum_parallel
+
 
 class TestThreadingSum(unittest.TestCase):
     def test_sum(self):

@@ -1,5 +1,7 @@
 import unittest
+
 from parallel_sum.shared_array import parallel_process_sum
+
 
 class TestMultiprocessingSum(unittest.TestCase):
     def test_sum(self):
