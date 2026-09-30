@@ -49,7 +49,8 @@ TOKEN_RE = re.compile(r"[A-Za-z0-9_@.+-]+")
 EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}")
 IPV4_RE = re.compile(r"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])")
 PATH_RE = re.compile(
-    r"(/home/[A-Za-z0-9_.-]+|/Users/[A-Za-z0-9_.-]+|[A-Za-z]:\\\\?Users\\\\?[A-Za-z0-9_.-]+)"
+    # (?<![\w.]) skips URL paths such as nyc.gov/home/... ; a real path starts after a space, quote or line start
+    r"((?<![\w.])/home/[A-Za-z0-9_.-]+|(?<![\w.])/Users/[A-Za-z0-9_.-]+|[A-Za-z]:\\\\?Users\\\\?[A-Za-z0-9_.-]+)"
 )
 SECRET_RES = {
     "aws_access_key": re.compile(r"\bAKIA[0-9A-Z]{16}\b"),

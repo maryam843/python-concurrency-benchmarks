@@ -67,6 +67,7 @@ def test_pii_scan_patterns():
     assert scan.scan_text("key AKIA" + "ABCDEFGHIJKLMNOP", "f")
     assert scan.scan_text("-----BEGIN RSA " + "PRIVATE KEY-----", "f")
     assert not scan.scan_text("numpy 2.5.3 and OpenMPI 4.1.6 on 127.0.0.1", "f")
+    assert not scan.scan_text("terms at https://www.example.gov" + HOME + "terms-of-use.page", "f")
     assert not scan.scan_text("185722545+maryam843@users.noreply.github.com", "f")
 
 
