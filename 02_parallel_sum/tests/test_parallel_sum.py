@@ -201,8 +201,9 @@ def _gustafson_printed_by_2025_main(load_2025, tmp_path):
         dest.write_text(load_2025("L3-P1", f"02_parallel_sum/{rel}"))
     # Under spawn (Windows) the 2025 process sum crashes first (nested worker), so swap it for the
     # sequential sum: this test is only about the Gustafson line that main.py prints at the end.
+    # n = 1e7 keeps every 2025 time above zero; at 1e5 a 0.0 s time divided by zero on Windows.
     code = ("import main; main.calculate_sum_multiprocessing = lambda n, p: main.calculate_sum_sequential(n); "
-            "main.evaluate_performance(10**5, 4, 4)")
+            "main.evaluate_performance(10**7, 4, 4)")  # 2025 timing uses time.time(): ~15 ms steps on Windows
     proc = subprocess.run([sys.executable, "-c", code], cwd=tmp_path, capture_output=True, text=True)
     assert proc.returncode == 0, proc.stderr[-1500:]
     out = proc.stdout
