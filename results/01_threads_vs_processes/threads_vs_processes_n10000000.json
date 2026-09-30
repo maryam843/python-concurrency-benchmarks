@@ -1,0 +1,105 @@
+{
+  "name": "threads_vs_processes_n10000000",
+  "timestamp_utc": "2026-09-30T18:01:39+00:00",
+  "seed": 2025,
+  "machine": {
+    "os": "Linux 6.18.44-fc-v50",
+    "machine": "x86_64",
+    "cpu_model": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "logical_cpus": 4,
+    "memory_gb": 15.7,
+    "python": "3.12.3",
+    "packages": {
+      "numpy": "2.5.3",
+      "pandas": "3.0.6",
+      "pyarrow": "25.0.1",
+      "mpi4py": "4.1.2",
+      "matplotlib": "3.11.2"
+    }
+  },
+  "n": 10000000,
+  "repeats": 5,
+  "start_method": "fork",
+  "rows": [
+    {
+      "config": "sequential",
+      "workers": 1,
+      "mean_s": 9.541326784600006,
+      "sd_s": 0.24471479868713264,
+      "runs_s": [
+        9.597383946000264,
+        9.439926226999887,
+        9.491117299000052,
+        9.920034247999865,
+        9.258172202999958
+      ],
+      "speedup": 1.0,
+      "efficiency": 1.0,
+      "result_matches_sequential": true
+    },
+    {
+      "config": "threads_1_per_function",
+      "workers": 2,
+      "mean_s": 10.109842826800104,
+      "sd_s": 0.33671423736065725,
+      "runs_s": [
+        10.308088092000162,
+        10.566510757999822,
+        9.700037633000193,
+        9.925321646000157,
+        10.049256005000188
+      ],
+      "speedup": 0.9437660849985695,
+      "efficiency": 0.47188304249928475,
+      "result_matches_sequential": true
+    },
+    {
+      "config": "processes_1_per_function",
+      "workers": 2,
+      "mean_s": 4.855643033600063,
+      "sd_s": 0.12116329502361056,
+      "runs_s": [
+        4.772188940999968,
+        4.738972452000326,
+        4.884474597999997,
+        4.834885541999938,
+        5.047693635000087
+      ],
+      "speedup": 1.9649975746931898,
+      "efficiency": 0.9824987873465949,
+      "result_matches_sequential": true
+    },
+    {
+      "config": "threads_2_per_function",
+      "workers": 4,
+      "mean_s": 10.379857229999924,
+      "sd_s": 0.5298648703877878,
+      "runs_s": [
+        10.898556356000427,
+        10.130726349999804,
+        11.001560121999773,
+        9.998313540999789,
+        9.870129780999832
+      ],
+      "speedup": 0.9192156089607483,
+      "efficiency": 0.22980390224018707,
+      "result_matches_sequential": true
+    },
+    {
+      "config": "processes_2_per_function",
+      "workers": 4,
+      "mean_s": 2.5388476075998367,
+      "sd_s": 0.11170808031785179,
+      "runs_s": [
+        2.4885793159996865,
+        2.558920659999785,
+        2.657482591999724,
+        2.6150434699998186,
+        2.3742120000001705
+      ],
+      "speedup": 3.758132924575232,
+      "efficiency": 0.939533231143808,
+      "result_matches_sequential": true
+    }
+  ]
+}

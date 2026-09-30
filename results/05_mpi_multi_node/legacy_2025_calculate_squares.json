@@ -1,0 +1,73 @@
+{
+  "name": "legacy_2025_calculate_squares",
+  "timestamp_utc": "2026-09-30T18:13:23+00:00",
+  "seed": null,
+  "machine": {
+    "os": "Linux 6.18.44-fc-v50",
+    "machine": "x86_64",
+    "cpu_model": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "logical_cpus": 4,
+    "memory_gb": 15.7,
+    "python": "3.12.3",
+    "packages": {
+      "numpy": "2.5.3",
+      "pandas": "3.0.6",
+      "pyarrow": "25.0.1",
+      "mpi4py": "4.1.2",
+      "matplotlib": "3.11.2"
+    }
+  },
+  "what": "2025 calculate_squares.py with only n changed",
+  "rows": [
+    {
+      "n": 1000000,
+      "ranks": 1,
+      "ok": true,
+      "wall_s_incl_startup": 3.993242151999766,
+      "peak_rss_mb_rank0": 394.4453125,
+      "peak_rss_mb_per_rank": [
+        394.4453125
+      ],
+      "printed_chars": 23537553
+    },
+    {
+      "n": 1000000,
+      "ranks": 4,
+      "ok": true,
+      "wall_s_incl_startup": 2.1604670140000053,
+      "peak_rss_mb_rank0": 192.546875,
+      "peak_rss_mb_per_rank": [
+        192.546875,
+        134.0234375,
+        134.0234375,
+        133.8203125
+      ],
+      "printed_chars": 23537553
+    },
+    {
+      "n": 10000000,
+      "ranks": 1,
+      "ok": true,
+      "wall_s_incl_startup": 49.30652631199973,
+      "peak_rss_mb_rank0": 2969.1015625,
+      "peak_rss_mb_per_rank": [
+        2969.1015625
+      ],
+      "printed_chars": 255375277
+    },
+    {
+      "n": 10000000,
+      "ranks": 4,
+      "ok": true,
+      "wall_s_incl_startup": 16.730795432999912,
+      "peak_rss_mb_rank0": 1446.5859375,
+      "peak_rss_mb_per_rank": [
+        1446.5859375,
+        829.08203125,
+        829.30859375,
+        829.09375
+      ],
+      "printed_chars": 255375277
+    }
+  ]
+}

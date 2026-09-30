@@ -1,0 +1,177 @@
+{
+  "name": "pool_squares",
+  "timestamp_utc": "2026-09-30T18:04:44+00:00",
+  "seed": null,
+  "machine": {
+    "os": "Linux 6.18.44-fc-v50",
+    "machine": "x86_64",
+    "cpu_model": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "logical_cpus": 4,
+    "memory_gb": 15.7,
+    "python": "3.12.3",
+    "packages": {
+      "numpy": "2.5.3",
+      "pandas": "3.0.6",
+      "pyarrow": "25.0.1",
+      "mpi4py": "4.1.2",
+      "matplotlib": "3.11.2"
+    }
+  },
+  "sizes": [
+    100000,
+    1000000
+  ],
+  "workers": 4,
+  "start_method": "fork",
+  "rows": [
+    {
+      "n": 100000,
+      "method": "sequential",
+      "workers": 1,
+      "repeats": 3,
+      "mean_s": 0.006479274999946938,
+      "sd_s": 0.0005675806269690213,
+      "runs_s": [
+        0.006425145999855886,
+        0.007071981000080996,
+        0.005940697999903932
+      ],
+      "speedup": 1.0,
+      "correct": true
+    },
+    {
+      "n": 100000,
+      "method": "pool_map",
+      "workers": 4,
+      "repeats": 3,
+      "mean_s": 0.027218540999911056,
+      "sd_s": 0.004558494620020106,
+      "runs_s": [
+        0.032034597000347276,
+        0.02297092699973291,
+        0.026650098999652982
+      ],
+      "speedup": 0.23804637434343415,
+      "correct": true
+    },
+    {
+      "n": 100000,
+      "method": "apply_async_per_item",
+      "workers": 4,
+      "repeats": 3,
+      "mean_s": 11.526840769666554,
+      "sd_s": 0.7176572266749192,
+      "runs_s": [
+        10.872201550999762,
+        12.29418028200007,
+        11.41414047599983
+      ],
+      "speedup": 0.00056210327959049,
+      "correct": true
+    },
+    {
+      "n": 100000,
+      "method": "apply_async_chunked",
+      "workers": 4,
+      "repeats": 3,
+      "mean_s": 0.047006998999980475,
+      "sd_s": 0.004548127917068389,
+      "runs_s": [
+        0.05064298199977202,
+        0.048470804000317,
+        0.041907210999852396
+      ],
+      "speedup": 0.13783638900134063,
+      "correct": true
+    },
+    {
+      "n": 100000,
+      "method": "process_pool_executor_chunksize",
+      "workers": 4,
+      "repeats": 3,
+      "mean_s": 0.06408499533335998,
+      "sd_s": 0.0017962310577675608,
+      "runs_s": [
+        0.06615898500012918,
+        0.06306726599996182,
+        0.06302873499998896
+      ],
+      "speedup": 0.10110439996512095,
+      "correct": true
+    },
+    {
+      "n": 1000000,
+      "method": "sequential",
+      "workers": 1,
+      "repeats": 3,
+      "mean_s": 0.07188673266682599,
+      "sd_s": 0.004681685686551246,
+      "runs_s": [
+        0.06746894500020062,
+        0.07679387500002122,
+        0.07139737800025614
+      ],
+      "speedup": 1.0,
+      "correct": true
+    },
+    {
+      "n": 1000000,
+      "method": "pool_map",
+      "workers": 4,
+      "repeats": 3,
+      "mean_s": 0.18151855766670147,
+      "sd_s": 0.0071345669234149,
+      "runs_s": [
+        0.1736477230001583,
+        0.18334695900011866,
+        0.18756099099982748
+      ],
+      "speedup": 0.39602965994706774,
+      "correct": true
+    },
+    {
+      "n": 1000000,
+      "method": "apply_async_per_item",
+      "workers": 4,
+      "repeats": 1,
+      "mean_s": 123.39112619799971,
+      "sd_s": 0.0,
+      "runs_s": [
+        123.39112619799971
+      ],
+      "speedup": 0.0005825924025644508,
+      "correct": true
+    },
+    {
+      "n": 1000000,
+      "method": "apply_async_chunked",
+      "workers": 4,
+      "repeats": 3,
+      "mean_s": 0.353912032000153,
+      "sd_s": 0.015272170933272492,
+      "runs_s": [
+        0.34583051700019496,
+        0.3715268840001045,
+        0.3443786950001595
+      ],
+      "speedup": 0.2031203411213635,
+      "correct": true
+    },
+    {
+      "n": 1000000,
+      "method": "process_pool_executor_chunksize",
+      "workers": 4,
+      "repeats": 3,
+      "mean_s": 0.5843306053334345,
+      "sd_s": 0.04164208059884922,
+      "runs_s": [
+        0.5426717909999752,
+        0.5843640930002039,
+        0.6259559320001244
+      ],
+      "speedup": 0.12302407577266215,
+      "correct": true
+    }
+  ],
+  "skipped": []
+}

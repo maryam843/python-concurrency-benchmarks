@@ -1,0 +1,222 @@
+{
+  "name": "stage4_sql",
+  "timestamp_utc": "2026-09-30T18:10:16+00:00",
+  "seed": null,
+  "machine": {
+    "os": "Linux 6.18.44-fc-v50",
+    "machine": "x86_64",
+    "cpu_model": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "logical_cpus": 4,
+    "memory_gb": 15.7,
+    "python": "3.12.3",
+    "packages": {
+      "numpy": "2.5.3",
+      "pandas": "3.0.6",
+      "pyarrow": "25.0.1",
+      "mpi4py": "4.1.2",
+      "matplotlib": "3.11.2"
+    }
+  },
+  "source": "stage2_cpu.json",
+  "answers": {
+    "q1_busiest_hour": [
+      {
+        "hour": 18,
+        "trips": 2944122
+      }
+    ],
+    "q2_average_fare_by_month": [
+      {
+        "month": "2025-01",
+        "avg_fare": 17.919590377222498
+      },
+      {
+        "month": "2025-02",
+        "avg_fare": 18.00468806596954
+      },
+      {
+        "month": "2025-03",
+        "avg_fare": 19.13145839364618
+      },
+      {
+        "month": "2025-04",
+        "avg_fare": 19.26927255528447
+      },
+      {
+        "month": "2025-05",
+        "avg_fare": 20.332256124073442
+      },
+      {
+        "month": "2025-06",
+        "avg_fare": 20.718563338731663
+      },
+      {
+        "month": "2025-07",
+        "avg_fare": 20.370466996949805
+      },
+      {
+        "month": "2025-08",
+        "avg_fare": 20.17209906886745
+      },
+      {
+        "month": "2025-09",
+        "avg_fare": 20.86639402692142
+      },
+      {
+        "month": "2025-10",
+        "avg_fare": 20.2169992705796
+      },
+      {
+        "month": "2025-11",
+        "avg_fare": 19.47898446458777
+      },
+      {
+        "month": "2025-12",
+        "avg_fare": 22.457931075570983
+      }
+    ],
+    "q3_top10_pickup_zones": [
+      {
+        "zone_id": 237,
+        "borough": "Manhattan",
+        "zone": "Upper East Side South",
+        "trips": 1979773
+      },
+      {
+        "zone_id": 161,
+        "borough": "Manhattan",
+        "zone": "Midtown Center",
+        "trips": 1930397
+      },
+      {
+        "zone_id": 132,
+        "borough": "Queens",
+        "zone": "JFK Airport",
+        "trips": 1850618
+      },
+      {
+        "zone_id": 236,
+        "borough": "Manhattan",
+        "zone": "Upper East Side North",
+        "trips": 1730402
+      },
+      {
+        "zone_id": 186,
+        "borough": "Manhattan",
+        "zone": "Penn Station/Madison Sq West",
+        "trips": 1430791
+      },
+      {
+        "zone_id": 162,
+        "borough": "Manhattan",
+        "zone": "Midtown East",
+        "trips": 1400074
+      },
+      {
+        "zone_id": 230,
+        "borough": "Manhattan",
+        "zone": "Times Sq/Theatre District",
+        "trips": 1380473
+      },
+      {
+        "zone_id": 142,
+        "borough": "Manhattan",
+        "zone": "Lincoln Square East",
+        "trips": 1273175
+      },
+      {
+        "zone_id": 138,
+        "borough": "Queens",
+        "zone": "LaGuardia Airport",
+        "trips": 1213038
+      },
+      {
+        "zone_id": 234,
+        "borough": "Manhattan",
+        "zone": "Union Sq",
+        "trips": 1178798
+      }
+    ],
+    "q4_longest_average_trip_month": [
+      {
+        "month": "2025-08",
+        "avg_distance_mi": 3.838478963701849,
+        "avg_duration_min": 17.29068845199849
+      }
+    ],
+    "q5_share_cleaned_out": [
+      {
+        "month": "2025-01",
+        "rows_raw": 3475226,
+        "rows_clean": 3210466,
+        "share_removed": 0.07618497329382319
+      },
+      {
+        "month": "2025-02",
+        "rows_raw": 3577543,
+        "rows_clean": 3268175,
+        "share_removed": 0.08647499135579921
+      },
+      {
+        "month": "2025-03",
+        "rows_raw": 4145257,
+        "rows_clean": 3785816,
+        "share_removed": 0.08671139087395546
+      },
+      {
+        "month": "2025-04",
+        "rows_raw": 3970553,
+        "rows_clean": 3630269,
+        "share_removed": 0.08570191608070715
+      },
+      {
+        "month": "2025-05",
+        "rows_raw": 4591845,
+        "rows_clean": 4047796,
+        "share_removed": 0.1184815689553981
+      },
+      {
+        "month": "2025-06",
+        "rows_raw": 4322960,
+        "rows_clean": 3827729,
+        "share_removed": 0.11455831189740363
+      },
+      {
+        "month": "2025-07",
+        "rows_raw": 3898963,
+        "rows_clean": 3456832,
+        "share_removed": 0.11339707506842205
+      },
+      {
+        "month": "2025-08",
+        "rows_raw": 3574091,
+        "rows_clean": 3146276,
+        "share_removed": 0.11969896681421933
+      },
+      {
+        "month": "2025-09",
+        "rows_raw": 4251015,
+        "rows_clean": 3796903,
+        "share_removed": 0.10682437017982764
+      },
+      {
+        "month": "2025-10",
+        "rows_raw": 4428699,
+        "rows_clean": 3901728,
+        "share_removed": 0.1189900239325364
+      },
+      {
+        "month": "2025-11",
+        "rows_raw": 4181444,
+        "rows_clean": 3605054,
+        "share_removed": 0.1378447254106476
+      },
+      {
+        "month": "2025-12",
+        "rows_raw": 4305006,
+        "rows_clean": 4011553,
+        "share_removed": 0.06816552636628148
+      }
+    ]
+  }
+}

@@ -1,0 +1,182 @@
+{
+  "name": "stage3_mpi",
+  "timestamp_utc": "2026-09-30T18:10:16+00:00",
+  "seed": null,
+  "machine": {
+    "os": "Linux 6.18.44-fc-v50",
+    "machine": "x86_64",
+    "cpu_model": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "logical_cpus": 4,
+    "memory_gb": 15.7,
+    "python": "3.12.3",
+    "packages": {
+      "numpy": "2.5.3",
+      "pandas": "3.0.6",
+      "pyarrow": "25.0.1",
+      "mpi4py": "4.1.2",
+      "matplotlib": "3.11.2"
+    }
+  },
+  "months": [
+    "2025-01",
+    "2025-02",
+    "2025-03",
+    "2025-04",
+    "2025-05",
+    "2025-06",
+    "2025-07",
+    "2025-08",
+    "2025-09",
+    "2025-10",
+    "2025-11",
+    "2025-12"
+  ],
+  "repeats": 3,
+  "rows": [
+    {
+      "ranks": 1,
+      "runs_s": [
+        11.084330713,
+        16.252742916,
+        17.103974368
+      ],
+      "mean_s": 14.813682665666667,
+      "sd_s": 3.2576369098416285,
+      "wall_incl_startup_mean_s": 15.736803170000107,
+      "identical_to_sequential": true,
+      "speedup_vs_1_rank": 1.0,
+      "efficiency": 1.0
+    },
+    {
+      "ranks": 2,
+      "runs_s": [
+        6.899913412,
+        6.787288231,
+        6.571527609
+      ],
+      "mean_s": 6.752909750666667,
+      "sd_s": 0.16687036536039193,
+      "wall_incl_startup_mean_s": 7.721475196999715,
+      "identical_to_sequential": true,
+      "speedup_vs_1_rank": 2.193674017960068,
+      "efficiency": 1.096837008980034
+    },
+    {
+      "ranks": 4,
+      "runs_s": [
+        5.848416559,
+        3.506578375,
+        4.055710594
+      ],
+      "mean_s": 4.470235176,
+      "sd_s": 1.2247140449189806,
+      "wall_incl_startup_mean_s": 5.702616639999785,
+      "identical_to_sequential": true,
+      "speedup_vs_1_rank": 3.313848619240221,
+      "efficiency": 0.8284621548100553
+    }
+  ],
+  "yearly": {
+    "months": [
+      "2025-01",
+      "2025-02",
+      "2025-03",
+      "2025-04",
+      "2025-05",
+      "2025-06",
+      "2025-07",
+      "2025-08",
+      "2025-09",
+      "2025-10",
+      "2025-11",
+      "2025-12"
+    ],
+    "rows_raw": 48722602,
+    "rows_clean": 43688597,
+    "removed": {
+      "pickup_outside_month": 214,
+      "bad_duration": 1106207,
+      "bad_distance": 1021706,
+      "bad_fare": 2578885,
+      "bad_passenger_count": 248775,
+      "unknown_pickup_zone": 78218
+    },
+    "removed_share": 0.10331970776109207,
+    "passenger_count_missing_raw": 11611894,
+    "passenger_count_missing_share": 0.23832663945164506,
+    "mean_fare": 19.974698502906836,
+    "mean_distance_mi": 3.5024806166240587,
+    "mean_duration_min": 17.29510735413789,
+    "hourly": [
+      1368919,
+      899090,
+      588980,
+      399642,
+      316366,
+      339705,
+      680533,
+      1257223,
+      1702376,
+      1830647,
+      1922088,
+      2062328,
+      2242834,
+      2347599,
+      2518071,
+      2617264,
+      2565033,
+      2825172,
+      2944122,
+      2662993,
+      2573788,
+      2637001,
+      2460116,
+      1926707
+    ],
+    "busiest_hour": 18,
+    "top10_pickup_zones": [
+      {
+        "zone_id": 237,
+        "trips": 1979773
+      },
+      {
+        "zone_id": 161,
+        "trips": 1930397
+      },
+      {
+        "zone_id": 132,
+        "trips": 1850618
+      },
+      {
+        "zone_id": 236,
+        "trips": 1730402
+      },
+      {
+        "zone_id": 186,
+        "trips": 1430791
+      },
+      {
+        "zone_id": 162,
+        "trips": 1400074
+      },
+      {
+        "zone_id": 230,
+        "trips": 1380473
+      },
+      {
+        "zone_id": 142,
+        "trips": 1273175
+      },
+      {
+        "zone_id": 138,
+        "trips": 1213038
+      },
+      {
+        "zone_id": 234,
+        "trips": 1178798
+      }
+    ],
+    "zones_seen": 260,
+    "max_zone_id": 263
+  }
+}
