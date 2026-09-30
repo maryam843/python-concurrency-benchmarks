@@ -203,8 +203,9 @@ def _gustafson_printed_by_2025_main(load_2025, tmp_path):
     # sequential sum: this test is only about the Gustafson line that main.py prints at the end.
     code = ("import main; main.calculate_sum_multiprocessing = lambda n, p: main.calculate_sum_sequential(n); "
             "main.evaluate_performance(10**5, 4, 4)")
-    out = subprocess.run([sys.executable, "-c", code],
-                         cwd=tmp_path, capture_output=True, text=True, check=True).stdout
+    proc = subprocess.run([sys.executable, "-c", code], cwd=tmp_path, capture_output=True, text=True)
+    assert proc.returncode == 0, proc.stderr[-1500:]
+    out = proc.stdout
     return float(re.search(r"Gustafson's Speedup \(Process\): ([\d.]+)", out).group(1))
 
 
