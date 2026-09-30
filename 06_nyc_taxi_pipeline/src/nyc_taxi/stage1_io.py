@@ -24,7 +24,7 @@ from nyc_taxi.config import DATA_DIR, MONTHS, file_name
 from nyc_taxi.download import download_months
 
 
-def time_downloads(months, workers, url_for=None, tmp_root=None) -> tuple[float, dict[str, str], int]:
+def time_downloads(months, workers, url_for=None, tmp_root=None) -> tuple[float, dict[str, str], int, int]:
     d = Path(tempfile.mkdtemp(prefix="taxi_dl_", dir=tmp_root))
     try:
         t0 = time.perf_counter()
@@ -32,7 +32,8 @@ def time_downloads(months, workers, url_for=None, tmp_root=None) -> tuple[float,
         elapsed = time.perf_counter() - t0
     finally:
         shutil.rmtree(d, ignore_errors=True)
-    return elapsed, {i["file"]: i["sha256"] for i in info}, sum(i["bytes"] for i in info)
+    retries = sum(i["attempts"] - 1 for i in info)
+    return elapsed, {i["file"]: i["sha256"] for i in info}, sum(i["bytes"] for i in info), retries
 
 
 def _read_table(path: Path) -> int:
@@ -53,19 +54,21 @@ def time_disk_reads(months, workers, data_dir: Path) -> tuple[float, int]:
 def run(months, workers_list, repeats, from_disk=False, data_dir=DATA_DIR, url_for=None, tmp_root=None) -> dict:
     rows, reference = [], None
     for w in workers_list:
-        times = []
+        times, retries = [], 0
         for _ in range(repeats):
             if from_disk:
                 t, n = time_disk_reads(months, w, data_dir)
                 check = n
             else:
-                t, check, n = time_downloads(months, w, url_for, tmp_root)
+                t, check, n, r = time_downloads(months, w, url_for, tmp_root)
+                retries += r
             if reference is None:
                 reference = check
             elif check != reference:
-                raise AssertionError(f"workers={w}: downloaded files differ from the first run")
+                bad = sorted(k for k in check if check[k] != reference.get(k)) if isinstance(check, dict) else check
+                raise AssertionError(f"workers={w}: files differ from the first run: {bad}")
             times.append(t)
-        rows.append({"workers": w, "runs_s": times, "mean_s": statistics.fmean(times),
+        rows.append({"workers": w, "runs_s": times, "mean_s": statistics.fmean(times), "retried_files": retries,
                      "sd_s": statistics.stdev(times) if len(times) > 1 else 0.0,
                      ("rows" if from_disk else "bytes"): n})
     base = rows[0]["mean_s"]

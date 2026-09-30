@@ -23,19 +23,42 @@ from nyc_taxi.config import DATA_DIR, MONTHS, ZONE_LOOKUP_URL, file_name, url
 CHUNK = 1 << 20
 
 
-def download_file(src_url: str, dest: Path, timeout: float = 120) -> dict:
-    """Stream src_url to dest (via a .part file), hashing while writing."""
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    part = dest.with_name(dest.name + ".part")
+class IncompleteDownload(OSError):
+    pass
+
+
+def _fetch(src_url: str, part: Path, timeout: float) -> tuple[int, str]:
     h = hashlib.sha256()
     size = 0
     with urllib.request.urlopen(src_url, timeout=timeout) as resp, open(part, "wb") as f:
+        expected = resp.headers.get("Content-Length")
         while chunk := resp.read(CHUNK):
             h.update(chunk)
             f.write(chunk)
             size += len(chunk)
+    if expected is not None and size != int(expected):
+        raise IncompleteDownload(f"{src_url}: got {size} of {expected} bytes")
+    return size, h.hexdigest()
+
+
+def download_file(src_url: str, dest: Path, timeout: float = 120, attempts: int = 3) -> dict:
+    """Stream src_url to dest (via a .part file), hashing while writing.
+
+    A connection can end early without an error (seen through the session's HTTPS proxy), so the
+    byte count is checked against Content-Length and a short transfer is retried.
+    """
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    part = dest.with_name(dest.name + ".part")
+    for attempt in range(1, attempts + 1):
+        try:
+            size, digest = _fetch(src_url, part, timeout)
+            break
+        except (IncompleteDownload, ConnectionError, TimeoutError) as exc:
+            if attempt == attempts:
+                raise
+            print(f"retrying {dest.name} (attempt {attempt} failed: {exc})")
     part.replace(dest)
-    return {"file": dest.name, "bytes": size, "sha256": h.hexdigest()}
+    return {"file": dest.name, "bytes": size, "sha256": digest, "attempts": attempt}
 
 
 def download_months(months: list[str], dest_dir: Path, workers: int, url_for=None) -> list[dict]:

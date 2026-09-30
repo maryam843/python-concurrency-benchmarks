@@ -198,6 +198,35 @@ def test_stage1_downloads_sequential_and_threads_identical(local_server, tmp_pat
     assert list(tmp_path.iterdir()) == []  # every run's temp folder was deleted
 
 
+def test_short_transfer_is_detected_and_retried(tmp_path):
+    body = PATHS[0].read_bytes()
+    calls = []
+
+    class Flaky(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            calls.append(1)
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body if len(calls) > 1 else body[:1000])  # first answer ends early
+            self.close_connection = True
+
+        def log_message(self, *a):
+            pass
+
+    srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Flaky)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    try:
+        info = download.download_file(f"http://127.0.0.1:{srv.server_address[1]}/x", tmp_path / "x.parquet")
+        assert info["attempts"] == 2 and info["bytes"] == len(body)
+        assert info["sha256"] == download.sha256_file(PATHS[0])
+        calls.clear()
+        with pytest.raises(download.IncompleteDownload):
+            download.download_file(f"http://127.0.0.1:{srv.server_address[1]}/x", tmp_path / "y", attempts=1)
+    finally:
+        srv.shutdown()
+
+
 def test_stage1_from_disk():
     res = stage1_io.run(MONTHS, [1, 2], repeats=1, from_disk=True, data_dir=FIX)
     assert res["mode"] == "read_from_disk" and res["rows"][1]["rows"] == 1002
