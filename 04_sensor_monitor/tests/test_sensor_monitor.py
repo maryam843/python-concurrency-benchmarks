@@ -146,7 +146,7 @@ def test_main_live_display_random_mode(capsys):
 
 # ---------- T2 regression tests: fail on 2025 code, pass on 2026 code ----------
 def _load_2025_sensor(load_2025, tmp_path, monkeypatch, speedup=50.0):
-    (tmp_path / "sensor_2025.py").write_text(load_2025("L4-P1", "04_sensor_monitor/src/sensor.py"))
+    (tmp_path / "sensor_2025.py").write_text(load_2025("L4-P1", "04_sensor_monitor/src/sensor.py"), encoding="utf-8")
     monkeypatch.syspath_prepend(str(tmp_path))
     old = importlib.import_module("sensor_2025")
     real_sleep = time.sleep
@@ -206,7 +206,7 @@ def test_regression_main_imports_fail_on_2025_code(load_2025, tmp_path):
     for rel in ("main.py", "src/sensor.py", "src/display.py"):
         dest = tmp_path / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_text(load_2025("L4-P1", f"04_sensor_monitor/{rel}"))
+        dest.write_text(load_2025("L4-P1", f"04_sensor_monitor/{rel}"), encoding="utf-8")
     with pytest.raises(AssertionError, match="ModuleNotFoundError"):
         check_main_starts_from_repo_root([sys.executable, "main.py"], tmp_path)
 

@@ -120,8 +120,8 @@ def _run_2025_pool(load_2025, tmp_path, monkeypatch):
     pkg = tmp_path / "legacy" / "src"
     pkg.mkdir(parents=True)
     (pkg / "__init__.py").write_text("")
-    (pkg / "utils.py").write_text(load_2025("A1-P1", "03_connection_pool/src/utils.py"))
-    (pkg / "connection_pool.py").write_text(load_2025("A1-P1", "03_connection_pool/src/connection_pool.py"))
+    for name in ("utils.py", "connection_pool.py"):  # the 2025 files contain emojis, so write UTF-8
+        (pkg / name).write_text(load_2025("A1-P1", f"03_connection_pool/src/{name}"), encoding="utf-8")
     monkeypatch.syspath_prepend(str(tmp_path / "legacy"))
     monkeypatch.chdir(tmp_path)
     for mod in [m for m in sys.modules if m == "src" or m.startswith("src.")]:

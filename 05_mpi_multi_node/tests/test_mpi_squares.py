@@ -115,7 +115,7 @@ def check_runs_with_one_rank(script: Path):
 @pytest.mark.mpi
 def test_regression_one_rank_fails_on_2025_code(load_2025, tmp_path):
     script = tmp_path / "mpi_program_2025.py"
-    script.write_text(load_2025("L6", "05_mpi_multi_node/mpi_program.py"))
+    script.write_text(load_2025("L6", "05_mpi_multi_node/mpi_program.py"), encoding="utf-8")
     with pytest.raises(AssertionError, match="MPI_ERR_RANK"):
         check_runs_with_one_rank(script)
 
@@ -134,7 +134,7 @@ def check_prints_plain_numbers(stdout: str):
 @pytest.mark.mpi
 def test_regression_numpy_scalars_printed_on_2025_code(load_2025, tmp_path):
     script = tmp_path / "calculate_squares_2025.py"
-    script.write_text(load_2025("L6", "05_mpi_multi_node/calculate_squares.py"))
+    script.write_text(load_2025("L6", "05_mpi_multi_node/calculate_squares.py"), encoding="utf-8")
     with pytest.raises(AssertionError):
         check_prints_plain_numbers(mpirun(2, script).stdout)
 

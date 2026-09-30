@@ -129,7 +129,7 @@ def test_main_script_prints_correct_sums_and_gustafson():
 
 # ---------- T2 regression tests: each check fails on the 2025 code and passes on the 2026 code ----------
 def _import_2025(tmp_path, monkeypatch, source, module_name):
-    (tmp_path / f"{module_name}.py").write_text(source)
+    (tmp_path / f"{module_name}.py").write_text(source, encoding="utf-8")
     monkeypatch.syspath_prepend(str(tmp_path))  # spawned children inherit sys.path
     return importlib.import_module(module_name)
 
@@ -198,7 +198,7 @@ def _gustafson_printed_by_2025_main(load_2025, tmp_path):
     for rel in ("main.py", "src/functions.py", "src/threads.py", "src/processing.py"):
         dest = tmp_path / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_text(load_2025("L3-P1", f"02_parallel_sum/{rel}"))
+        dest.write_text(load_2025("L3-P1", f"02_parallel_sum/{rel}"), encoding="utf-8")
     # Under spawn (Windows) the 2025 process sum crashes first (nested worker), so swap it for the
     # sequential sum: this test is only about the Gustafson line that main.py prints at the end.
     # n = 1e7 keeps every 2025 time above zero; at 1e5 a 0.0 s time divided by zero on Windows.
