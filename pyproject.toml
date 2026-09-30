@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "python-concurrency-benchmarks"
+version = "1.0.0"
+description = "Measured guide to when threads, processes and MPI help in Python (DSAI3202 coursework, fixed and extended in 2026)"
+requires-python = ">=3.12"
+license = "MIT"
+authors = [{ name = "Maryam Mahaboob" }]
+
+[tool.setuptools]
+packages = ["bench_common"]
+
+[tool.setuptools.package-dir]
+bench_common = "src/bench_common"
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib"
+markers = [
+    "mpi: needs an MPI runtime and mpi4py (Linux CI only)",
+    "slow: longer integration tests",
+]

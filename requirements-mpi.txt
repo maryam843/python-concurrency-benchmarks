@@ -1,0 +1,2 @@
+# MPI experiments (05, 06 stage 3). Needs an MPI runtime first (OpenMPI 4.1.6 was used: apt install openmpi-bin libopenmpi-dev).
+mpi4py==4.1.2
