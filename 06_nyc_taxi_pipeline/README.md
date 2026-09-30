@@ -152,8 +152,8 @@ The tests build the same database from the synthetic fixtures and check all five
 ## How to run
 
 ```bash
-python -m nyc_taxi.download                  # about 830 MB into data/nyc_taxi/, plus the manifest
-python -m nyc_taxi.stage1_io                 # downloads 3 x 3 times into temporary folders (about 7.5 GB of traffic)
+python -m nyc_taxi.download                  # 12 files into data/nyc_taxi/ (sizes in the manifest above)
+python -m nyc_taxi.stage1_io                 # downloads the whole year 9 times (3 settings x 3 runs) into temporary folders
 python -m nyc_taxi.stage2_cpu
 python -m nyc_taxi.stage3_mpi                # needs an MPI runtime and mpi4py
 python -m nyc_taxi.stage4_sql

@@ -47,7 +47,7 @@ The regression tests run the 2025 `sensor.py` (with its sleeps scaled down) and 
 
 ```bash
 python 04_sensor_monitor/main.py                                   # random mode, live display, Ctrl+C to stop
-python 04_sensor_monitor/download_air_quality.py                   # once, about 1.5 MB
+python 04_sensor_monitor/download_air_quality.py                   # once; the zip is small (its SHA-256 goes into data/air_quality/manifest.json)
 python 04_sensor_monitor/main.py --mode data --duration 30         # live display with real readings
 python 04_sensor_monitor/main.py --mode data --headless --duration 12 --save   # the table above
 python -m pytest 04_sensor_monitor
