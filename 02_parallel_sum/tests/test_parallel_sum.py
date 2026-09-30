@@ -182,7 +182,7 @@ def test_regression_nested_worker_fails_under_spawn_on_2025_code(load_2025, tmp_
     src = load_2025("L3-P1", "02_parallel_sum/src/processing.py")
     old = _import_2025(tmp_path, monkeypatch, src, "processing_2025")
     monkeypatch.setattr(old, "multiprocessing", mp.get_context("spawn"))
-    with pytest.raises((AttributeError, TypeError), match="pickle"):
+    with pytest.raises((AttributeError, TypeError), match="local object"):
         check_spawn_safe(lambda n, p: old.calculate_sum_multiprocessing(n, p)[0])
 
 
