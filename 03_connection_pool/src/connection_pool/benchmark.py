@@ -3,8 +3,8 @@
     python -m connection_pool.benchmark --sizes 1e5 1e6 --repeats 3
 
 apply_async with one task per item is not run above n = 1e6: every item becomes its own task,
-AsyncResult object and pair of pickled messages. At 1e6 that already took minutes in the 2026
-audit re-run; at 1e7 the process was killed for running out of memory (15 GB) after about 4 minutes.
+AsyncResult object and pair of pickled messages. At 1e6 that already takes about two minutes on a
+4-core machine, and at 1e7 ten million AsyncResult objects would be pending at once.
 """
 
 from __future__ import annotations

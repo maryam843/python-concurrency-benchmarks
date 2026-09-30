@@ -9,7 +9,8 @@ Rules are applied in this order; a removed trip is counted once, under the first
 3. bad_distance: trip_distance is missing, <= 0 miles or > 100 miles.
 4. bad_fare: fare_amount is missing, <= 0 USD or > 500 USD (refunds, disputes and typos).
 5. bad_passenger_count: passenger_count is 0 or more than 6. A missing passenger_count is kept:
-   it is missing for about 15 % of trips and says "unknown", not "wrong".
+   it is missing for 23.8 % of 2025 trips (results/06_nyc_taxi_pipeline/stage2_cpu.json) and says
+   "unknown", not "wrong".
 6. unknown_pickup_zone: PULocationID is not a known zone 1-263 (264 and 265 are "Unknown" / "Outside of NYC").
 """
 

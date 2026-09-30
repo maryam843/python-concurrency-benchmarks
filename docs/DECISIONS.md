@@ -41,7 +41,7 @@ One line of "why" per choice. Numbers quoted here come from `results/` or from t
 - **Timeout is optional and `None` means wait.** The brief wants every process to eventually get a connection; a timeout is there for callers that prefer to give up.
 - **Max concurrent holders is tracked in shared memory and also recomputed from the event log in tests.** Two independent checks of "never more than 2".
 - **The Manager handle is left out when the pool is pickled.** It cannot be pickled, which only shows up under spawn (Windows).
-- **apply_async per item is not run at 1e7.** At 1e6 it already takes minutes; at 1e7 the 2026 audit re-run was killed for memory. A chunked apply_async shows the fix instead.
+- **apply_async per item is not run at 1e7.** At 1e6 it already took about two minutes (`results/03_connection_pool/pool_squares.json`), and at 1e7 it would hold ten million pending result objects at once. A chunked apply_async shows the fix instead.
 - **`multiprocessing_squares` is kept as an alias of `pool_map`.** In 2025 they had identical bodies; benchmarking both would double-count one method.
 
 ## 04 sensor monitor
@@ -68,7 +68,7 @@ One line of "why" per choice. Numbers quoted here come from `results/` or from t
 - **Latest complete year (2025), 12 monthly files.** A full year makes the summaries meaningful; the files are downloaded, never committed.
 - **Read only the six columns the rules and summaries need.** Less I/O and memory for every method equally.
 - **Cleaning rules applied in a fixed order, each removed row counted once.** The "share removed per month" answer is then well defined.
-- **Missing passenger_count is kept.** About 15 % of trips lack it; it is unknown, not invalid.
+- **Missing passenger_count is kept.** It is missing for 23.8 % of 2025 trips (`passenger_count_missing_share` in `results/06_nyc_taxi_pipeline/stage2_cpu.json`); it is unknown, not invalid, and dropping it would remove a quarter of the year.
 - **Month summaries store sums and counts, not means.** Combining months (per rank, per worker) is then exact, so every method's yearly answer is identical, and the tests assert equality, not "close".
 - **Stage 1 downloads into a fresh temp folder each run.** No run can be served from a local copy; the cached copy used by later stages is a separate download.
 - **Stage 3 sends months round-robin and gathers small dicts.** A month is the natural unit (one file); the gathered data is kilobytes.
