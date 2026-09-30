@@ -1,0 +1,141 @@
+import json
+
+import pytest
+from hypothesis import given, settings
+from hypothesis import strategies as st
+
+from bench_common import efficiency
+from threads_vs_processes import benchmark as bm
+from threads_vs_processes.workloads import generate_and_add_numbers, generate_and_join_letters, run_task
+
+
+# T1 unit
+def test_workloads_are_deterministic_with_seed():
+    assert generate_and_add_numbers(1000, seed=7) == generate_and_add_numbers(1000, seed=7)
+    assert generate_and_join_letters(1000, seed=7) == generate_and_join_letters(1000, seed=7)
+
+
+def test_letters_are_printable_ascii():
+    s = generate_and_join_letters(500, seed=1)
+    assert len(s) == 500
+    assert all(33 <= ord(c) <= 126 for c in s)
+
+
+def test_numbers_within_range():
+    assert 0 <= generate_and_add_numbers(10, seed=3) <= 10 * 1_000_000
+    assert generate_and_add_numbers(0, seed=3) == 0
+
+
+def test_config_workers():
+    workers = {c.name: c.workers for c in bm.CONFIGS}
+    assert workers == {
+        "sequential": 1,
+        "threads_1_per_function": 2,
+        "processes_1_per_function": 2,
+        "threads_2_per_function": 4,
+        "processes_2_per_function": 4,
+    }
+
+
+def test_run_task_dispatch():
+    assert run_task(("numbers", 5, 1)) == generate_and_add_numbers(5, 1)
+    assert run_task(("letters", 5, 1)) == generate_and_join_letters(5, 1)
+
+
+# T3 property: splitting never changes the total amount of work
+@given(n=st.integers(min_value=0, max_value=10**8), k=st.integers(min_value=1, max_value=16))
+def test_make_tasks_preserves_total_work(n, k):
+    tasks = bm.make_tasks(n, k, seed=0)
+    assert len(tasks) == 2 * k
+    for name in ("numbers", "letters"):
+        assert sum(t[1] for t in tasks if t[0] == name) == n
+
+
+@settings(max_examples=25, deadline=None)
+@given(t_seq=st.floats(0.01, 100), t_par=st.floats(0.01, 100), p=st.integers(1, 64))
+def test_efficiency_is_speedup_over_p(t_seq, t_par, p):
+    assert efficiency(t_seq, t_par, p) == pytest.approx((t_seq / t_par) / p)
+
+
+# T4 integration: every config returns exactly the sequential answer for the same task list
+@pytest.mark.parametrize("cfg", bm.CONFIGS, ids=lambda c: c.name)
+def test_every_config_matches_sequential(cfg):
+    tasks = bm.make_tasks(3001, cfg.per_function, seed=11)
+    assert bm.run_config(cfg, tasks) == bm.run_sequential(tasks)
+
+
+def test_processes_work_under_spawn():
+    cfg = bm.CONFIGS[2]
+    tasks = bm.make_tasks(500, 1, seed=5)
+    assert bm.run_config(cfg, tasks, start_method="spawn") == bm.run_sequential(tasks)
+
+
+def test_benchmark_rows_and_efficiency_use_real_p(tmp_path, monkeypatch):
+    monkeypatch.setattr(bm, "write_result", lambda *a, **k: tmp_path / "x.json")
+    res = bm.main(["--n", "2000", "--repeats", "2", "--seed", "1"])
+    rows = {r["config"]: r for r in res["rows"]}
+    assert rows["sequential"]["speedup"] == pytest.approx(1.0)
+    for r in res["rows"]:
+        assert r["efficiency"] == pytest.approx(r["speedup"] / r["workers"])
+        assert r["result_matches_sequential"]
+    assert "| sequential | 1 |" in bm.format_table(res)
+
+
+def test_benchmark_detects_wrong_result(monkeypatch):
+    real = bm.run_config
+
+    def broken(cfg, tasks, start_method=None):
+        total, letters = real(cfg, tasks, start_method)
+        return (total + 1, letters) if cfg.kind == "threads" else (total, letters)
+
+    monkeypatch.setattr(bm, "run_config", broken)
+    with pytest.raises(AssertionError, match="different result"):
+        bm.benchmark(200, 1, seed=0)
+
+
+# T8 reproducibility: same seed -> identical results
+def test_same_seed_same_results():
+    a = bm.run_sequential(bm.make_tasks(2000, 2, seed=42))
+    b = bm.run_sequential(bm.make_tasks(2000, 2, seed=42))
+    c = bm.run_sequential(bm.make_tasks(2000, 2, seed=43))
+    assert a == b
+    assert a != c
+
+
+# T2 regression: the 2025 notebook divided by np = 4 although only 2 workers ran
+NOTEBOOK = "01_threads_vs_processes/First_trials_with_threads_and_processes_with_performance_metrics.ipynb"
+
+
+def _efficiency_cell(nb_json: str) -> str:
+    nb = json.loads(nb_json)
+    for cell in nb["cells"]:
+        src = "".join(cell["source"])
+        if cell["cell_type"] == "code" and "efficiency_thread" in src and "efficiency_processes" in src:
+            return src
+    raise LookupError("efficiency cell not found")
+
+
+def _efficiency_from_cell(src: str, speedup_value: float) -> float:
+    ns = {"speedup_thread": speedup_value, "speedup_processes": speedup_value, "print": lambda *a: None}
+    exec(src, ns)  # the 2025 cell is plain arithmetic
+    return ns["efficiency_processes"]
+
+
+def check_efficiency_uses_real_p(efficiency_fn):
+    """Regression check (bug B06): 1 process per function = 2 workers, so efficiency must be S/2."""
+    t_seq, t_par = 1.8, 1.0
+    assert efficiency_fn(t_seq, t_par, 2) == pytest.approx((t_seq / t_par) / 2)
+
+
+def _efficiency_2025(load_2025):
+    src = _efficiency_cell(load_2025("L2", NOTEBOOK))
+    return lambda t_seq, t_par, workers: _efficiency_from_cell(src, t_seq / t_par)  # ignores workers
+
+
+def test_regression_efficiency_fails_on_2025_code(load_2025):
+    with pytest.raises(AssertionError):
+        check_efficiency_uses_real_p(_efficiency_2025(load_2025))
+
+
+def test_regression_efficiency_passes_on_2026_code():
+    check_efficiency_uses_real_p(efficiency)
