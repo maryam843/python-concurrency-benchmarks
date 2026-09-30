@@ -37,3 +37,22 @@ markers = [
 
 [tool.ruff.lint.isort]
 known-first-party = ["bench_common", "threads_vs_processes", "parallel_sum", "connection_pool", "sensor_monitor", "mpi_squares", "nyc_taxi"]
+
+[tool.coverage.run]
+source = [
+    "src",
+    "01_threads_vs_processes/src",
+    "02_parallel_sum/src",
+    "03_connection_pool/src",
+    "04_sensor_monitor/src",
+    "05_mpi_multi_node/src",
+    "06_nyc_taxi_pipeline/src",
+]
+patch = ["subprocess"]
+parallel = true
+concurrency = ["thread", "multiprocessing"]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+exclude_also = ["if __name__ == .__main__.:"]
