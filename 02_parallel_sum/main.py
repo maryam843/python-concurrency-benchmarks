@@ -1,12 +1,15 @@
-# entry point for execution
+# entry point for execution: python 02_parallel_sum/main.py [n] [workers]
 
-from parallel_sum.threads import calculate_sum_parallel
-from parallel_sum.processing import calculate_sum_multiprocessing
+import sys
+
 from parallel_sum.functions import calculate_sum_sequential
+from parallel_sum.laws import amdahl_speedup, gustafson_speedup
+from parallel_sum.processing import calculate_sum_multiprocessing
+from parallel_sum.threads import calculate_sum_parallel
 
 
 def evaluate_performance(n, num_threads, num_processes):
-    
+
     # Sequential Execution
     seq_sum, seq_time = calculate_sum_sequential(n)
     print(f"Sequential Sum: {seq_sum}")
@@ -25,8 +28,8 @@ def evaluate_performance(n, num_threads, num_processes):
     print(f"Process Execution Time: {pro_time:.4f} seconds")
     print("___________________")
 
-    # Check if sums match
-    if seq_sum == par_sum == pro_sum:
+    # Check if sums match (and match the closed form n(n+1)/2)
+    if seq_sum == par_sum == pro_sum == n * (n + 1) // 2:
         # Calculate Speedups
         speedup_thread = seq_time / par_time
         speedup_process = seq_time / pro_time
@@ -35,32 +38,26 @@ def evaluate_performance(n, num_threads, num_processes):
         efficiency_thread = speedup_thread / num_threads
         efficiency_process = speedup_process / num_processes
 
-        # Amdahl's Law Speedup (Assuming 90% parallelizable)
+        # Amdahl's and Gustafson's laws (assuming 90% parallelizable)
         P = 0.9
-        amdahl_speedup_thread = 1 / ((1 - P) + (P / num_threads))
-        amdahl_speedup_process = 1 / ((1 - P) + (P / num_processes))
-
-        # Gustafson's Law Speedup
-        gustafson_speedup_thread = num_threads - (1 - P) * num_threads
-        gustafson_speedup_process = num_processes - (1 - P) * num_processes
-
         print(f"Thread Speedup: {speedup_thread:.2f}")
         print(f"Process Speedup: {speedup_process:.2f}")
 
         print(f"Thread Efficiency: {efficiency_thread:.2f}")
         print(f"Process Efficiency: {efficiency_process:.2f}")
 
-        print(f"Amdahl's Speedup (Thread): {amdahl_speedup_thread:.2f}")
-        print(f"Amdahl's Speedup (Process): {amdahl_speedup_process:.2f}")
+        print(f"Amdahl's Speedup (Thread): {amdahl_speedup(P, num_threads):.2f}")
+        print(f"Amdahl's Speedup (Process): {amdahl_speedup(P, num_processes):.2f}")
 
-        print(f"Gustafson's Speedup (Thread): {gustafson_speedup_thread:.2f}")
-        print(f"Gustafson's Speedup (Process): {gustafson_speedup_process:.2f}")
-    else:
-        print("Error: The sums do not match!")
+        print(f"Gustafson's Speedup (Thread): {gustafson_speedup(P, num_threads):.2f}")
+        print(f"Gustafson's Speedup (Process): {gustafson_speedup(P, num_processes):.2f}")
+        return True
+    print("Error: The sums do not match!")
+    return False
+
 
 if __name__ == "__main__":
-    large_number = 10**6
-    num_threads = 4
-    num_processes = 4
-
-    evaluate_performance(large_number, num_threads, num_processes)
+    large_number = int(float(sys.argv[1])) if len(sys.argv) > 1 else 10**6
+    workers = int(sys.argv[2]) if len(sys.argv) > 2 else 4
+    ok = evaluate_performance(large_number, workers, workers)
+    sys.exit(0 if ok else 1)
