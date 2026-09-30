@@ -199,7 +199,11 @@ def _gustafson_printed_by_2025_main(load_2025, tmp_path):
         dest = tmp_path / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_text(load_2025("L3-P1", f"02_parallel_sum/{rel}"))
-    out = subprocess.run([sys.executable, "-c", "import main; main.evaluate_performance(10**5, 4, 4)"],
+    # Under spawn (Windows) the 2025 process sum crashes first (nested worker), so swap it for the
+    # sequential sum: this test is only about the Gustafson line that main.py prints at the end.
+    code = ("import main; main.calculate_sum_multiprocessing = lambda n, p: main.calculate_sum_sequential(n); "
+            "main.evaluate_performance(10**5, 4, 4)")
+    out = subprocess.run([sys.executable, "-c", code],
                          cwd=tmp_path, capture_output=True, text=True, check=True).stdout
     return float(re.search(r"Gustafson's Speedup \(Process\): ([\d.]+)", out).group(1))
 
