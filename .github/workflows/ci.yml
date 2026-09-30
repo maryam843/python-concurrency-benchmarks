@@ -59,3 +59,12 @@ jobs:
         env:
           PCB_START_METHOD: spawn
         run: python -m pytest -q -m "not slow"
+      - name: README claims match results/
+        run: python tools/check_readme_claims.py
+      - name: Notebooks execute headless (Linux)
+        if: runner.os == 'Linux'
+        env:
+          PCB_NOTEBOOK_N: "200000"
+        run: |
+          python -m ipykernel install --user --name python3
+          python tools/run_notebooks.py
