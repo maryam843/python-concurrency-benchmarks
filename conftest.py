@@ -24,7 +24,7 @@ def git_show(commit: str, path: str) -> str | None:
     """Return a file's content at a given commit, or None if history is not available (shallow clone)."""
     try:
         out = subprocess.run(["git", "-C", str(REPO), "show", f"{commit}:{path}"],
-                             capture_output=True, check=True, text=True)
+                             capture_output=True, check=True, text=True, encoding="utf-8")  # 2025 files hold emojis
     except (subprocess.CalledProcessError, FileNotFoundError):
         return None
     return out.stdout
