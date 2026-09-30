@@ -48,3 +48,21 @@ def original_2025(branch: str, path: str) -> str:
 @pytest.fixture
 def load_2025():
     return original_2025
+
+
+@pytest.fixture(autouse=True)
+def _no_internet(monkeypatch):
+    """Tests may only talk to 127.0.0.1: CI must never download the real datasets."""
+    import urllib.parse
+    import urllib.request
+
+    real_urlopen = urllib.request.urlopen
+
+    def guarded(url, *args, **kwargs):
+        target = url if isinstance(url, str) else url.full_url
+        host = urllib.parse.urlparse(target).hostname
+        if host not in ("127.0.0.1", "localhost"):
+            raise RuntimeError(f"test tried to reach {host}; use a local fixture instead")
+        return real_urlopen(url, *args, **kwargs)
+
+    monkeypatch.setattr(urllib.request, "urlopen", guarded)
