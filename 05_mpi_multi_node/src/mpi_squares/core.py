@@ -48,8 +48,12 @@ def peak_rss_mb() -> float:
 
 
 def squares_checksum(arr: np.ndarray) -> int:
-    """Sum of squares modulo 2**64 (uint64 wrap-around is well defined), used to compare runs."""
-    return int(arr.astype(np.uint64).sum(dtype=np.uint64))
+    """Sum of squares modulo 2**64 (uint64 wrap-around is well defined), used to compare runs.
+
+    A uint64 view reinterprets the same bytes, so no second 800 MB array is made at n = 1e8.
+    """
+    arr = np.ascontiguousarray(arr, dtype=np.int64)
+    return int(arr.view(np.uint64).sum(dtype=np.uint64))
 
 
 def run(comm, n: int, gather: bool = True) -> dict | None:
