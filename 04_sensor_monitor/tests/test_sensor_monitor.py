@@ -181,3 +181,32 @@ def test_regression_main_imports_pass_on_2026_code():
     check_main_starts_from_repo_root(
         [sys.executable, "04_sensor_monitor/main.py", "--headless", "--duration", "1",
          "--sensor-interval", "0.05", "--process-interval", "0.2"], REPO)
+
+
+def test_download_script_checks_the_hash_and_replaces_a_bad_zip(tmp_path):
+    import functools
+    import hashlib
+    import http.server
+    import zipfile
+
+    site = tmp_path / "site"
+    site.mkdir()
+    with zipfile.ZipFile(site / "aq.zip", "w") as z:
+        z.write(FIXTURE, "AirQualityUCI.csv")
+    good = hashlib.sha256((site / "aq.zip").read_bytes()).hexdigest()
+    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(site))
+    srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    try:
+        url = f"http://127.0.0.1:{srv.server_address[1]}/aq.zip"
+        script = importlib.import_module("runpy").run_path(str(REPO / "04_sensor_monitor" / "download_air_quality.py"))
+        dest = tmp_path / "data"
+        dest.mkdir()
+        (dest / "air_quality.zip").write_bytes(b"partial")  # left over from a broken download
+        csv = script["main"](dest, url, good)
+        assert csv.read_bytes() == FIXTURE.read_bytes()
+        with pytest.raises(ValueError, match="does not match"):
+            script["main"](tmp_path / "other", url, "0" * 64)
+        assert not (tmp_path / "other" / "air_quality.zip").exists()
+    finally:
+        srv.shutdown()
