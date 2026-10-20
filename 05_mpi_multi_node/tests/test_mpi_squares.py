@@ -93,10 +93,35 @@ def test_small_n_prints_plain_list():
 @needs_mpi
 @pytest.mark.mpi
 def test_scaling_runner_small():
-    res = scaling.scaling([1, 2], [5000], repeats=1)
+    res = scaling.scaling([1, 2], [5000], repeats=1, pause_s=0)
     assert [r["ranks"] for r in res["rows"]] == [1, 2]
     assert res["rows"][0]["speedup_vs_1_rank"] == pytest.approx(1.0)
     assert "| 5e+03 | 2 |" in scaling.format_table(res)
+
+
+def test_scaling_pauses_before_every_run_and_uses_medians(monkeypatch):
+    events, times = [], iter([9.0, 1.0, 1.1, 0.9, 1.0, 1.2,  # 1 rank: warm-up, then 5 timed runs
+                              9.0, 0.5, 0.6, 0.4, 0.5, 5.0])  # 2 ranks: one slow timed run at the end
+    monkeypatch.setattr(scaling.time, "sleep", lambda s: events.append(("sleep", s)))
+
+    def fake_run(ranks, n, gather=True):
+        events.append(("run", ranks))
+        return {"time_s": next(times), "checksum_mod_2_64": 7, "length": n, "last_square": n * n,
+                "peak_rss_mb_rank0": 10.0, "peak_rss_mb_per_rank": [10.0] * ranks}
+
+    monkeypatch.setattr(scaling, "run_once", fake_run)
+    res = scaling.scaling([1, 2], [10], repeats=5, pause_s=0.5)
+    assert events[:4] == [("sleep", 0.5), ("run", 1), ("sleep", 0.5), ("run", 1)]
+    assert events.count(("sleep", 0.5)) == 12  # warm-up + 5 runs, for each rank count
+    one, two = res["rows"]
+    assert one["median_s"] == 1.0 and two["median_s"] == 0.5 and two["mean_s"] == pytest.approx(1.4)
+    assert two["speedup_vs_1_rank"] == pytest.approx(2.0)  # from medians, not pulled down by the 5.0 s run
+    assert res["speedup_from"] == "median" and not one["first_run_outlier"]
+
+
+def test_scaling_cli_needs_five_repeats():
+    with pytest.raises(SystemExit):
+        scaling.main(["--repeats", "3", "--no-save"])
 
 
 # ---------- T2 regression: each check guards a bug the 2025 code had ----------

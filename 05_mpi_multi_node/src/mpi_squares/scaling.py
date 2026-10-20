@@ -1,6 +1,9 @@
 """Single-machine scaling table for calculate_squares.py: mpiexec -n 1/2/4, several n, repeated runs.
 
-    python -m mpi_squares.scaling --ranks 1 2 4 --sizes 1e7 1e8 --repeats 3
+    python -m mpi_squares.scaling --ranks 1 2 4 --sizes 1e7 1e8 --repeats 5 --pause 2
+
+Back-to-back runs alternated between fast and slow, so every run (warm-up included) now waits a short
+pause first, and speedups use the median of the runs. Peak memory is the largest seen in any run.
 """
 
 from __future__ import annotations
@@ -13,9 +16,10 @@ import statistics
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
-from bench_common import write_result
+from bench_common import OUTLIER_FACTOR, first_run_outlier, write_result
 
 SCRIPT = Path(__file__).resolve().parents[2] / "calculate_squares.py"
 
@@ -49,42 +53,53 @@ def run_once(ranks: int, n: int, gather: bool = True, timeout: float = 600) -> d
         return json.loads(out.read_text())
 
 
-def scaling(ranks_list: list[int], sizes: list[int], repeats: int, gather: bool = True) -> dict:
+def _paused_run(ranks: int, n: int, gather: bool, pause_s: float) -> dict:
+    time.sleep(pause_s)  # let the previous run's memory be handed back first
+    return run_once(ranks, n, gather)
+
+
+def scaling(ranks_list: list[int], sizes: list[int], repeats: int, gather: bool = True, pause_s: float = 2.0) -> dict:
     rows = []
     for n in sizes:
         base = None
         for ranks in ranks_list:
-            run_once(ranks, n, gather)  # warm-up run, not timed (first-touch memory, page cache)
-            runs = [run_once(ranks, n, gather) for _ in range(repeats)]
+            _paused_run(ranks, n, gather, pause_s)  # warm-up run, not timed (first-touch memory, page cache)
+            runs = [_paused_run(ranks, n, gather, pause_s) for _ in range(repeats)]
             ref = runs[0]
             if any(r["checksum_mod_2_64"] != ref["checksum_mod_2_64"] or r["length"] != n for r in runs):
                 raise AssertionError(f"inconsistent results for n={n}, ranks={ranks}")
             if ref["last_square"] != n * n:
                 raise AssertionError(f"last square wrong for n={n}")
             times = [r["time_s"] for r in runs]
-            mean = statistics.fmean(times)
+            median = statistics.median(times)
             if ranks == ranks_list[0]:
-                base = (mean, ranks, ref["checksum_mod_2_64"])
+                base = (median, ranks, ref["checksum_mod_2_64"])
             elif ref["checksum_mod_2_64"] != base[2]:
                 raise AssertionError(f"checksum differs between rank counts for n={n}")
-            speedup = base[0] / mean
+            speedup = base[0] / median
+            outlier = first_run_outlier(times)
+            if outlier:
+                print(f"info: n={n:.0e} ranks={ranks}: first timed run {times[0]:.3f} s is more than "
+                      f"{OUTLIER_FACTOR:g}x the median {median:.3f} s")
             rows.append({
-                "n": n, "ranks": ranks, "gather": gather, "runs_s": times, "mean_s": mean,
-                "sd_s": statistics.stdev(times) if len(times) > 1 else 0.0,
+                "n": n, "ranks": ranks, "gather": gather, "runs_s": times, "median_s": median,
+                "mean_s": statistics.fmean(times), "sd_s": statistics.stdev(times) if len(times) > 1 else 0.0,
+                "first_run_outlier": outlier,
                 "speedup_vs_1_rank": speedup, "efficiency": speedup / (ranks / base[1]),
                 "length": ref["length"], "last_square": ref["last_square"],
                 "checksum_mod_2_64": ref["checksum_mod_2_64"],
                 "peak_rss_mb_rank0_max": max(r["peak_rss_mb_rank0"] for r in runs),
                 "peak_rss_mb_per_rank_max": max(max(r["peak_rss_mb_per_rank"]) for r in runs),
             })
-    return {"ranks": ranks_list, "sizes": sizes, "repeats": repeats, "gather": gather, "rows": rows}
+    return {"ranks": ranks_list, "sizes": sizes, "repeats": repeats, "pause_s": pause_s, "gather": gather,
+            "speedup_from": "median", "rows": rows}
 
 
 def format_table(res: dict) -> str:
-    lines = ["| n | Ranks | Mean (s) | SD (s) | Speedup vs 1 rank | Efficiency | Peak RSS rank 0 (MB) |",
-             "|---|---|---|---|---|---|---|"]
+    lines = ["| n | Ranks | Median (s) | Mean (s) | SD (s) | Speedup vs 1 rank | Efficiency | Peak RSS rank 0 (MB) |",
+             "|---|---|---|---|---|---|---|---|"]
     for r in res["rows"]:
-        lines.append(f"| {r['n']:.0e} | {r['ranks']} | {r['mean_s']:.3f} | {r['sd_s']:.3f} "
+        lines.append(f"| {r['n']:.0e} | {r['ranks']} | {r['median_s']:.3f} | {r['mean_s']:.3f} | {r['sd_s']:.3f} "
                      f"| {r['speedup_vs_1_rank']:.2f} | {r['efficiency']:.2f} | {r['peak_rss_mb_rank0_max']:.0f} |")
     return "\n".join(lines)
 
@@ -93,11 +108,15 @@ def main(argv: list[str] | None = None) -> dict:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--ranks", nargs="+", type=int, default=[1, 2, 4])
     ap.add_argument("--sizes", nargs="+", type=float, default=[1e7, 1e8])
-    ap.add_argument("--repeats", type=int, default=3)
+    ap.add_argument("--repeats", type=int, default=5)
+    ap.add_argument("--pause", type=float, default=2.0, help="seconds to wait before each run")
     ap.add_argument("--no-gather", action="store_true")
     ap.add_argument("--no-save", action="store_true")
     args = ap.parse_args(argv)
-    res = scaling(args.ranks, [int(s) for s in args.sizes], args.repeats, gather=not args.no_gather)
+    if args.repeats < 5:
+        ap.error("--repeats must be at least 5 (the median of fewer runs is not reliable here)")
+    res = scaling(args.ranks, [int(s) for s in args.sizes], args.repeats, gather=not args.no_gather,
+                  pause_s=args.pause)
     print(format_table(res))
     if not args.no_save:
         name = "mpi_squares_scaling" + ("_reduce_only" if args.no_gather else "_gatherv")

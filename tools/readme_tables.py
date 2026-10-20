@@ -56,9 +56,9 @@ def t04(load):
 
 def _t05(load, name):
     d = load(f"05_mpi_multi_node/{name}.json")
-    return _table(["n", "Ranks", f"Time (s), mean ± sd of {d['repeats']}", "Speedup vs 1 rank", "Efficiency",
-                   "Peak memory rank 0 (MB)"],
-                  [[f"{r['n']:.0e}", str(r["ranks"]), _ms(r), f"{r['speedup_vs_1_rank']:.2f}x",
+    return _table(["n", "Ranks", f"Median time (s) of {d['repeats']}", "Mean ± sd (s)", "Speedup vs 1 rank (medians)",
+                   "Efficiency", "Peak memory rank 0 (MB)"],
+                  [[f"{r['n']:.0e}", str(r["ranks"]), f"{r['median_s']:.3f}", _ms(r), f"{r['speedup_vs_1_rank']:.2f}x",
                     f"{r['efficiency']:.2f}", f"{r['peak_rss_mb_rank0_max']:.0f}"] for r in d["rows"]])
 
 
