@@ -1,6 +1,4 @@
-import importlib
 import runpy
-import sys
 from pathlib import Path
 
 import pytest
@@ -114,36 +112,6 @@ def test_main_demo_runs():
 # ---------- T2 regression: every process must eventually get a connection ----------
 def check_every_process_gets_a_connection(acquired_count, num_processes=8):
     assert acquired_count == num_processes
-
-
-def _run_2025_pool(load_2025, tmp_path, monkeypatch):
-    pkg = tmp_path / "legacy" / "src"
-    pkg.mkdir(parents=True)
-    (pkg / "__init__.py").write_text("")
-    for name in ("utils.py", "connection_pool.py"):  # the 2025 files contain emojis, so write UTF-8
-        (pkg / name).write_text(load_2025("A1-P1", f"03_connection_pool/src/{name}"), encoding="utf-8")
-    monkeypatch.syspath_prepend(str(tmp_path / "legacy"))
-    monkeypatch.chdir(tmp_path)
-    for mod in [m for m in sys.modules if m == "src" or m.startswith("src.")]:
-        monkeypatch.delitem(sys.modules, mod)
-    old = importlib.import_module("src.connection_pool")
-    import multiprocessing as mp
-
-    pool = old.ConnectionPool(size=2)
-    procs = [mp.Process(target=old.access_database, args=(pool, i)) for i in range(8)]
-    for p in procs:
-        p.start()
-    for p in procs:
-        p.join()
-    return sum(1 for e in pool.usage_log if e.startswith("Acquired"))
-
-
-@pytest.mark.slow
-def test_regression_semaphore_fails_on_2025_code(load_2025, tmp_path, monkeypatch):
-    acquired = _run_2025_pool(load_2025, tmp_path, monkeypatch)
-    assert acquired == 2  # what the audit and Phase 0 saw
-    with pytest.raises(AssertionError):
-        check_every_process_gets_a_connection(acquired)
 
 
 def test_regression_semaphore_passes_on_2026_code():

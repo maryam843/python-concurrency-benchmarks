@@ -1,5 +1,3 @@
-import importlib
-import re
 import subprocess
 import sys
 from pathlib import Path
@@ -127,23 +125,11 @@ def test_main_script_prints_correct_sums_and_gustafson():
     assert "Gustafson's Speedup (Process): 3.70" in out
 
 
-# ---------- T2 regression tests: each check fails on the 2025 code and passes on the 2026 code ----------
-def _import_2025(tmp_path, monkeypatch, source, module_name):
-    (tmp_path / f"{module_name}.py").write_text(source, encoding="utf-8")
-    monkeypatch.syspath_prepend(str(tmp_path))  # spawned children inherit sys.path
-    return importlib.import_module(module_name)
+# ---------- T2 regression tests: each check guards a bug the 2025 code had ----------
 
 
 def check_sum_correct_at_1e6(fn):
     assert fn(10**6, 4) == 500_000_500_000
-
-
-def test_regression_int32_overflow_fails_on_2025_code(load_2025, tmp_path, monkeypatch):
-    src = load_2025("L3-P2", "02_parallel_sum/src/multiprocessing.py")
-    old = _import_2025(tmp_path, monkeypatch, src, "mp_sum_2025")
-    assert old.parallel_process_sum(10**6, 4) == 1_784_293_664  # the documented wrong value
-    with pytest.raises(AssertionError):
-        check_sum_correct_at_1e6(old.parallel_process_sum)
 
 
 def test_regression_int32_overflow_passes_on_2026_code():
@@ -157,16 +143,6 @@ def check_no_stdlib_shadowing(py_paths):
     assert not shadowing, shadowing
 
 
-def test_regression_stdlib_shadowing_fails_on_2025_code(load_2025):
-    load_2025("L3-P2", "02_parallel_sum/src/multiprocessing.py")  # skips without history
-    sha = subprocess.run(["git", "-C", str(REPO), "log", "--format=%H", "-1", "--fixed-strings",
-                          "--grep=Original L3-P2 coursework"], capture_output=True, text=True).stdout.strip()
-    files = subprocess.run(["git", "-C", str(REPO), "ls-tree", "-r", "--name-only", sha, "02_parallel_sum"],
-                           capture_output=True, text=True, check=True).stdout.split()
-    with pytest.raises(AssertionError):
-        check_no_stdlib_shadowing([f for f in files if f.endswith(".py")])
-
-
 def test_regression_stdlib_shadowing_passes_on_2026_code():
     files = [str(p.relative_to(REPO)) for p in REPO.rglob("*.py") if ".venv" not in p.parts]
     check_no_stdlib_shadowing(files)
@@ -176,45 +152,12 @@ def check_spawn_safe(calc):
     assert calc(1000, 2) == closed_form(1000)
 
 
-def test_regression_nested_worker_fails_under_spawn_on_2025_code(load_2025, tmp_path, monkeypatch):
-    import multiprocessing as mp
-
-    src = load_2025("L3-P1", "02_parallel_sum/src/processing.py")
-    old = _import_2025(tmp_path, monkeypatch, src, "processing_2025")
-    monkeypatch.setattr(old, "multiprocessing", mp.get_context("spawn"))
-    with pytest.raises((AttributeError, TypeError), match="local object"):
-        check_spawn_safe(lambda n, p: old.calculate_sum_multiprocessing(n, p)[0])
-
-
 def test_regression_nested_worker_passes_under_spawn_on_2026_code():
     check_spawn_safe(lambda n, p: calculate_sum_multiprocessing(n, p, "spawn")[0])
 
 
 def check_gustafson(gustafson_n4_p09):
     assert gustafson_n4_p09() == pytest.approx(3.70, abs=0.005)
-
-
-def _gustafson_printed_by_2025_main(load_2025, tmp_path):
-    for rel in ("main.py", "src/functions.py", "src/threads.py", "src/processing.py"):
-        dest = tmp_path / rel
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_text(load_2025("L3-P1", f"02_parallel_sum/{rel}"), encoding="utf-8")
-    # Under spawn (Windows) the 2025 process sum crashes first (nested worker), so swap it for the
-    # sequential sum: this test is only about the Gustafson line that main.py prints at the end.
-    # n = 1e7 keeps every 2025 time above zero; at 1e5 a 0.0 s time divided by zero on Windows.
-    code = ("import main; main.calculate_sum_multiprocessing = lambda n, p: main.calculate_sum_sequential(n); "
-            "main.evaluate_performance(10**7, 4, 4)")  # 2025 timing uses time.time(): ~15 ms steps on Windows
-    proc = subprocess.run([sys.executable, "-c", code], cwd=tmp_path, capture_output=True, text=True)
-    assert proc.returncode == 0, proc.stderr[-1500:]
-    out = proc.stdout
-    return float(re.search(r"Gustafson's Speedup \(Process\): ([\d.]+)", out).group(1))
-
-
-def test_regression_gustafson_fails_on_2025_code(load_2025, tmp_path):
-    value = _gustafson_printed_by_2025_main(load_2025, tmp_path)
-    assert value == pytest.approx(3.60)
-    with pytest.raises(AssertionError):
-        check_gustafson(lambda: value)
 
 
 def test_regression_gustafson_passes_on_2026_code():

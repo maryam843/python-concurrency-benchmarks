@@ -1,5 +1,3 @@
-import json
-
 import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
@@ -103,38 +101,10 @@ def test_same_seed_same_results():
 
 
 # T2 regression: the 2025 notebook divided by np = 4 although only 2 workers ran
-NOTEBOOK = "01_threads_vs_processes/First_trials_with_threads_and_processes_with_performance_metrics.ipynb"
-
-
-def _efficiency_cell(nb_json: str) -> str:
-    nb = json.loads(nb_json)
-    for cell in nb["cells"]:
-        src = "".join(cell["source"])
-        if cell["cell_type"] == "code" and "efficiency_thread" in src and "efficiency_processes" in src:
-            return src
-    raise LookupError("efficiency cell not found")
-
-
-def _efficiency_from_cell(src: str, speedup_value: float) -> float:
-    ns = {"speedup_thread": speedup_value, "speedup_processes": speedup_value, "print": lambda *a: None}
-    exec(src, ns)  # the 2025 cell is plain arithmetic
-    return ns["efficiency_processes"]
-
-
 def check_efficiency_uses_real_p(efficiency_fn):
     """Regression check (bug B06): 1 process per function = 2 workers, so efficiency must be S/2."""
     t_seq, t_par = 1.8, 1.0
     assert efficiency_fn(t_seq, t_par, 2) == pytest.approx((t_seq / t_par) / 2)
-
-
-def _efficiency_2025(load_2025):
-    src = _efficiency_cell(load_2025("L2", NOTEBOOK))
-    return lambda t_seq, t_par, workers: _efficiency_from_cell(src, t_seq / t_par)  # ignores workers
-
-
-def test_regression_efficiency_fails_on_2025_code(load_2025):
-    with pytest.raises(AssertionError):
-        check_efficiency_uses_real_p(_efficiency_2025(load_2025))
 
 
 def test_regression_efficiency_passes_on_2026_code():

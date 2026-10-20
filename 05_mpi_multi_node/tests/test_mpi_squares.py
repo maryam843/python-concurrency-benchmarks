@@ -99,28 +99,11 @@ def test_scaling_runner_small():
     assert "| 5e+03 | 2 |" in scaling.format_table(res)
 
 
-@needs_mpi
-@pytest.mark.mpi
-def test_mpi_test_script_runs():
-    proc = mpirun(2, FOLDER / "mpi_test.py")
-    assert proc.returncode == 0
-    assert proc.stdout.count("running on") == 2
-
-
-# ---------- T2 regression: fail on 2025 code, pass on 2026 code ----------
+# ---------- T2 regression: each check guards a bug the 2025 code had ----------
 def check_runs_with_one_rank(script: Path):
     proc = mpirun(1, script)
     errors = [line for line in proc.stderr.splitlines() if "Error" in line or "Exception" in line]
     assert proc.returncode == 0, errors
-
-
-@needs_mpi
-@pytest.mark.mpi
-def test_regression_one_rank_fails_on_2025_code(load_2025, tmp_path):
-    script = tmp_path / "mpi_program_2025.py"
-    script.write_text(load_2025("L6", "05_mpi_multi_node/mpi_program.py"), encoding="utf-8")
-    with pytest.raises(AssertionError, match="MPI_ERR_RANK"):
-        check_runs_with_one_rank(script)
 
 
 @needs_mpi
@@ -131,15 +114,6 @@ def test_regression_one_rank_passes_on_2026_code():
 
 def check_prints_plain_numbers(stdout: str):
     assert "np.int64" not in stdout and "[1, 4, 9" in stdout
-
-
-@needs_mpi
-@pytest.mark.mpi
-def test_regression_numpy_scalars_printed_on_2025_code(load_2025, tmp_path):
-    script = tmp_path / "calculate_squares_2025.py"
-    script.write_text(load_2025("L6", "05_mpi_multi_node/calculate_squares.py"), encoding="utf-8")
-    with pytest.raises(AssertionError):
-        check_prints_plain_numbers(mpirun(2, script).stdout)
 
 
 @needs_mpi

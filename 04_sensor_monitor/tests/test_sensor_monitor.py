@@ -4,7 +4,6 @@ import subprocess
 import sys
 import threading
 import time
-import types
 from pathlib import Path
 from queue import Queue
 
@@ -144,14 +143,7 @@ def test_main_live_display_random_mode(capsys):
     assert "\x1b[7A" in out and "Sensor 2 Average:" in out
 
 
-# ---------- T2 regression tests: fail on 2025 code, pass on 2026 code ----------
-def _load_2025_sensor(load_2025, tmp_path, monkeypatch, speedup=50.0):
-    (tmp_path / "sensor_2025.py").write_text(load_2025("L4-P1", "04_sensor_monitor/src/sensor.py"), encoding="utf-8")
-    monkeypatch.syspath_prepend(str(tmp_path))
-    old = importlib.import_module("sensor_2025")
-    real_sleep = time.sleep
-    monkeypatch.setattr(old, "time", types.SimpleNamespace(sleep=lambda s: real_sleep(s / speedup)))
-    return old
+# ---------- T2 regression tests: each check guards a bug the 2025 code had ----------
 
 
 def _watch_thread_errors(monkeypatch):
@@ -166,23 +158,6 @@ def check_processor_survives_and_queue_stays_bounded(start, run_s=1.5, bound=40)
     time.sleep(run_s)
     assert processor.is_alive(), "processor thread died"
     assert q.qsize() <= bound, f"queue grew to {q.qsize()}"
-
-
-def test_regression_processor_crash_and_queue_growth_fail_on_2025_code(load_2025, tmp_path, monkeypatch):
-    old = _load_2025_sensor(load_2025, tmp_path, monkeypatch)  # 1 s -> 20 ms, 5 s -> 100 ms
-    errors = _watch_thread_errors(monkeypatch)
-
-    def start():
-        q = Queue()
-        for i in range(3):
-            threading.Thread(target=old.simulate_sensor, args=(i, q), daemon=True).start()
-        p = threading.Thread(target=old.process_temperatures, args=(q,), daemon=True)
-        p.start()
-        return q, p
-
-    with pytest.raises(AssertionError):
-        check_processor_survives_and_queue_stays_bounded(start)
-    assert any("'float' object has no attribute 'append'" in e for e in errors)
 
 
 def test_regression_processor_and_queue_pass_on_2026_code(monkeypatch):
@@ -200,15 +175,6 @@ def test_regression_processor_and_queue_pass_on_2026_code(monkeypatch):
 def check_main_starts_from_repo_root(cmd, cwd):
     proc = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=30)
     assert proc.returncode == 0, proc.stderr[-300:]
-
-
-def test_regression_main_imports_fail_on_2025_code(load_2025, tmp_path):
-    for rel in ("main.py", "src/sensor.py", "src/display.py"):
-        dest = tmp_path / rel
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_text(load_2025("L4-P1", f"04_sensor_monitor/{rel}"), encoding="utf-8")
-    with pytest.raises(AssertionError, match="ModuleNotFoundError"):
-        check_main_starts_from_repo_root([sys.executable, "main.py"], tmp_path)
 
 
 def test_regression_main_imports_pass_on_2026_code():

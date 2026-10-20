@@ -35,7 +35,6 @@ python_files = ["test_*.py"]
 testpaths = ["tests", "01_threads_vs_processes", "02_parallel_sum", "03_connection_pool", "04_sensor_monitor", "05_mpi_multi_node", "06_nyc_taxi_pipeline"]
 markers = [
     "mpi: needs an MPI runtime and mpi4py (Linux CI only)",
-    "slow: longer integration tests",
 ]
 
 [tool.ruff.lint.isort]

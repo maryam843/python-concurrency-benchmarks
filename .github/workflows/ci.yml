@@ -38,7 +38,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 0  # regression tests read the 2025 import commits
+          fetch-depth: 0  # the PII scan test reads every commit
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
@@ -60,7 +60,7 @@ jobs:
         if: runner.os == 'Linux'
         env:
           PCB_START_METHOD: spawn
-        run: python -m pytest -q -m "not slow"
+        run: python -m pytest -q
       - name: README claims match results/
         run: python tools/check_readme_claims.py
       - name: Notebooks execute headless (Linux)
