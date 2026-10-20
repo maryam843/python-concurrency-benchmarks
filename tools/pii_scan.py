@@ -3,9 +3,9 @@
 Usage: python tools/pii_scan.py [--repo PATH] [--worktree]
 
 Two kinds of checks:
-1. Hashed denylist: SHA-256 of known personal tokens (a student ID, lab IP addresses and
-   hostnames, university identities from the old coursework repo's commit metadata). Only the
-   hashes are stored here, so the scanner never contains the values it looks for.
+1. Optional denylist: plain values read from the PII_DENYLIST environment variable
+   (comma-separated, for example from a CI secret). Nothing personal is stored in this file. If the
+   variable is unset, this check is skipped. A hit prints the location only, never the value.
 2. Generic patterns: e-mail addresses, IPv4 addresses, home-directory paths and common
    secret formats (cloud keys, tokens, private keys).
 
@@ -15,31 +15,11 @@ Exit code 0 means 0 hits.
 from __future__ import annotations
 
 import argparse
-import hashlib
+import os
 import re
 import subprocess
 import sys
 from pathlib import Path
-
-DENY_SHA256 = {
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-}
 
 ALLOWED_EMAILS = {"185722545+maryam843@users.noreply.github.com", "noreply@github.com"}
 ALLOWED_IPS = {"127.0.0.1", "0.0.0.0"}
@@ -69,12 +49,19 @@ def _git(repo: Path, *args: str) -> bytes:
     return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, check=True).stdout
 
 
+def denylist() -> set[str]:
+    """Plain values from PII_DENYLIST (comma-separated); empty when the variable is unset."""
+    raw = os.environ.get("PII_DENYLIST", "")
+    return {v.strip().lower() for v in raw.split(",") if v.strip()}
+
+
 def scan_text(text: str, where: str) -> list[str]:
     hits: list[str] = []
-    for tok in TOKEN_RE.findall(text):
-        t = tok.strip(".-").lower()
-        if len(t) >= 4 and hashlib.sha256(t.encode()).hexdigest() in DENY_SHA256:
-            hits.append(f"{where}: denylisted token (sha256 {hashlib.sha256(t.encode()).hexdigest()[:12]})")
+    deny = denylist()
+    if deny:
+        for tok in TOKEN_RE.findall(text):
+            if tok.strip(".-").lower() in deny:
+                hits.append(f"{where}: denylisted token")
     for m in EMAIL_RE.findall(text):
         if m.lower() not in ALLOWED_EMAILS:
             hits.append(f"{where}: e-mail address")

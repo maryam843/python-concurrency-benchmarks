@@ -23,6 +23,8 @@ jobs:
       - name: Ruff
         run: ruff check .
       - name: PII and secret scan (full history)
+        env:
+          PII_DENYLIST: ${{ secrets.PII_DENYLIST }}
         run: python tools/pii_scan.py --worktree
 
   test:

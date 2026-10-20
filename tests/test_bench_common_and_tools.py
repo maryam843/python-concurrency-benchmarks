@@ -72,6 +72,18 @@ def test_pii_scan_patterns():
     assert not scan.scan_text("185722545+maryam843@users.noreply.github.com", "f")
 
 
+def test_pii_scan_denylist_from_env(monkeypatch):
+    scan = _load_tool("pii_scan")
+    fake = "-".join(["zz", "test", "token", "123"])  # built at runtime, like the inputs above
+    monkeypatch.delenv("PII_DENYLIST", raising=False)
+    assert not scan.scan_text(f"note {fake} here", "f")
+    monkeypatch.setenv("PII_DENYLIST", f" other-value , {fake.upper()} ")
+    hits = scan.scan_text(f"note {fake} here", "f.txt")
+    assert hits == ["f.txt: denylisted token"]
+    assert fake not in hits[0]
+    assert not scan.scan_text("nothing personal here", "f")
+
+
 def test_pii_scan_history_of_this_repo_is_clean():
     scan = _load_tool("pii_scan")
     if subprocess.run(["git", "-C", str(REPO), "rev-parse"], capture_output=True).returncode != 0:
