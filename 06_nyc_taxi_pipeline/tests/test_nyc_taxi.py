@@ -305,6 +305,21 @@ def test_stage3_mpi_identical_to_sequential(monkeypatch):
     assert all(r["identical_to_sequential"] for r in res["rows"])
     assert res["yearly"] == combine([summarise_month(p) for p in PATHS])
     assert summary_key([summarise_month(p) for p in PATHS])[0]["month"] == "2025-01"
+    extra = res["bind_to_none"]
+    assert extra["ranks"] == 1 and extra["binding"] == "none" and extra["identical_to_sequential"]
+    for r in res["rows"] + [extra]:
+        assert r["speedup_vs_sequential"] == pytest.approx(res["sequential"]["median_s"] / r["median_s"])
+        assert all("bound" in line and not line.startswith("[") for line in r["bindings"])
+
+
+def test_binding_lines_drop_the_host_prefix(monkeypatch):
+    monkeypatch.setattr(stage3_mpi.socket, "gethostname", lambda: "box7")
+    out = ("[box7:1234] MCW rank 0 bound to socket 0[core 0[hwt 0]]: [B/././.]\n"
+           "ranks=1 months=12\n[box7:1235] MCW rank 1 is not bound (or bound to all available processors)\n")
+    lines = stage3_mpi.binding_lines(out)
+    assert lines == ["MCW rank 0 bound to socket 0[core 0[hwt 0]]: [B/././.]",
+                     "MCW rank 1 is not bound (or bound to all available processors)"]
+    assert not any("box7" in line for line in lines)
 
 
 def test_stage3_requires_mpiexec(monkeypatch):

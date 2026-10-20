@@ -91,11 +91,14 @@ def t06_stage2_arrow1(load):
 
 def t06_stage3(load):
     d = load("06_nyc_taxi_pipeline/stage3_mpi.json")
-    return _table(["Ranks", "Time (s), mean ± sd of 3", "Speedup vs 1 rank", "Efficiency",
-                   "Wall time incl. start-up (s)", "Identical summaries"],
-                  [[str(r["ranks"]), _ms(r, nd=2), f"{r['speedup_vs_1_rank']:.2f}x", f"{r['efficiency']:.2f}",
+    rows = d["rows"] + ([d["bind_to_none"]] if d.get("bind_to_none") else [])
+    binding = {"default": "Open MPI default", "none": "`--bind-to none` (extra run)"}
+    return _table(["Ranks", "Binding", f"Median time (s) of {d['repeats']}", "Mean ± sd (s)", "Speedup vs 1 rank",
+                   "Speedup vs sequential", "Efficiency", "Wall time incl. start-up (s)", "Identical summaries"],
+                  [[str(r["ranks"]), binding[r["binding"]], f"{r['median_s']:.2f}", _ms(r, nd=2),
+                    f"{r['speedup_vs_1_rank']:.2f}x", f"{r['speedup_vs_sequential']:.2f}x", f"{r['efficiency']:.2f}",
                     f"{r['wall_incl_startup_mean_s']:.2f}", "yes" if r["identical_to_sequential"] else "NO"]
-                   for r in d["rows"]])
+                   for r in rows])
 
 
 def t06_manifest(load):
