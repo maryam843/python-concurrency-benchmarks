@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from bench_common import TimingStats, efficiency, machine_info, speedup, time_repeats, write_result
+from bench_common import TimingStats, efficiency, first_run_outlier, machine_info, speedup, time_repeats, write_result
 
 REPO = Path(__file__).resolve().parents[1]
 
@@ -23,6 +23,15 @@ def test_timing_stats():
     assert s.mean == 2.0 and s.sd == pytest.approx(1.0)
     assert TimingStats((5.0,)).sd == 0.0
     assert s.to_dict()["runs"] == [1.0, 2.0, 3.0]
+    assert s.median == 2.0 and s.to_dict()["median"] == 2.0
+
+
+def test_first_run_outlier_is_flagged():
+    assert first_run_outlier([0.43, 0.022, 0.020, 0.021, 0.020])  # cold first run, about 20x the median
+    assert not first_run_outlier([0.025, 0.022, 0.020, 0.021, 0.020])
+    assert not first_run_outlier([0.43])  # one run: nothing to compare with
+    assert TimingStats((9.0, 1.0, 1.0)).first_run_outlier
+    assert not TimingStats((2.9, 1.0, 1.0)).first_run_outlier
 
 
 def test_time_repeats_and_errors():

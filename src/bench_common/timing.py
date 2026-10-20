@@ -1,4 +1,8 @@
-"""Timing helpers: repeat a callable, report mean and sample standard deviation."""
+"""Timing helpers: repeat a callable, report mean, median and sample standard deviation.
+
+A first run more than OUTLIER_FACTOR times slower than the median is flagged as an outlier
+(information only, never a failure): it usually means a cold start such as fresh memory pages.
+"""
 
 from __future__ import annotations
 
@@ -7,6 +11,13 @@ import time
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from typing import Any
+
+OUTLIER_FACTOR = 3.0
+
+
+def first_run_outlier(runs: tuple[float, ...] | list[float], factor: float = OUTLIER_FACTOR) -> bool:
+    """True when the first run is more than `factor` times slower than the median of all runs."""
+    return len(runs) > 1 and runs[0] > factor * statistics.median(runs)
 
 
 @dataclass(frozen=True)
@@ -18,6 +29,14 @@ class TimingStats:
         return statistics.fmean(self.runs)
 
     @property
+    def median(self) -> float:
+        return statistics.median(self.runs)
+
+    @property
+    def first_run_outlier(self) -> bool:
+        return first_run_outlier(self.runs)
+
+    @property
     def sd(self) -> float:
         return statistics.stdev(self.runs) if len(self.runs) > 1 else 0.0
 
@@ -25,6 +44,8 @@ class TimingStats:
         d = asdict(self)
         d["runs"] = list(self.runs)
         d["mean"] = self.mean
+        d["median"] = self.median
+        d["first_run_outlier"] = self.first_run_outlier
         d["sd"] = self.sd
         return d
 
