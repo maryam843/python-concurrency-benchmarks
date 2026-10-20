@@ -2,10 +2,13 @@
 
 PCB_START_METHOD=spawn forces the multiprocessing start method for the whole run, so a Linux
 machine can check the code behaves the way it will on Windows and macOS (spawn is their default).
+Without it, Linux runs use forkserver: plain fork after threads have started can deadlock, and
+Python 3.14 makes forkserver the Linux default anyway.
 """
 
 import multiprocessing as mp
 import os
+import sys
 from pathlib import Path
 
 import pytest
@@ -15,6 +18,8 @@ REPO = Path(__file__).resolve().parent
 
 def pytest_configure(config):
     method = os.environ.get("PCB_START_METHOD")
+    if not method and sys.platform.startswith("linux"):
+        method = "forkserver"
     if method:
         mp.set_start_method(method, force=True)
 
