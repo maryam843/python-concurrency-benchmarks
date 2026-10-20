@@ -26,6 +26,15 @@ venv/
 coverage.xml
 htmlcov/
 .ipynb_checkpoints/
+.mypy_cache/
+*.log
+*.bundle
+
+# Editors and operating systems
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
 
 # Secrets
 .env
