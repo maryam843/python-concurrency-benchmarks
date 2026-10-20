@@ -102,7 +102,25 @@ def test_benchmark_rows(monkeypatch, tmp_path):
     for r in res["rows"]:
         assert r["correct"] and r["sum"] == closed_form(20_000)
         assert r["efficiency"] == pytest.approx(r["speedup"] / r["workers"])
-    assert "numpy_vectorised" in bm.format_table(res)
+        assert r["median_s"] > 0 and r["mean_s"] > 0 and r["first_run_outlier"] is False  # one run: no outlier
+    assert res["repeats"] == 1 and "numpy_vectorised" in bm.format_table(res)
+
+
+def test_benchmark_warms_up_each_size_before_timing(monkeypatch):
+    calls = []
+    real = bm.methods
+
+    def counting(workers, start_method):
+        return {name: (lambda n, fn=fn, name=name: calls.append((name, n)) or fn(n), p)
+                for name, (fn, p) in real(workers, start_method).items() if name in ("sequential", "numpy_vectorised")}
+
+    monkeypatch.setattr(bm, "methods", counting)
+    res = bm.benchmark([100, 1000], 2, 5)
+    for name in ("sequential", "numpy_vectorised"):
+        for n in (100, 1000):
+            assert calls.count((name, n)) == 6  # 1 untimed warm-up + 5 timed runs
+    assert all(len(r["runs_s"]) == 5 for r in res["rows"])
+    assert res["speedup_from"] == "median"
 
 
 def test_benchmark_rejects_wrong_sum(monkeypatch):

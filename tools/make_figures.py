@@ -159,6 +159,7 @@ def fig_mpi_scaling() -> Path | None:
 
 
 def main() -> list[Path]:
+    repeats_02 = (_load("02_parallel_sum/parallel_sum.json") or {}).get("repeats")
     made = [
         fig_taxi_speedup(),
         fig_trips_by_hour(),
@@ -166,7 +167,7 @@ def main() -> list[Path]:
                          "Lab 2 workloads, n = 1e7 (mean of 5 runs)",
                          lambda d: [(f"{r['config']} (p={r['workers']})", r["speedup"]) for r in d["rows"]]),
         fig_speedup_bars("02_parallel_sum/parallel_sum.json", "02_parallel_sum_1e8.svg",
-                         "Sum of 1..n, n = 1e8 (mean of 3 runs)",
+                         f"Sum of 1..n, n = 1e8 (median of {repeats_02} runs)",
                          lambda d: [(f"{r['method']} (p={r['workers']})", r["speedup"])
                                     for r in d["rows"] if r["n"] == max(d["sizes"])]),
         fig_mpi_scaling(),

@@ -1,6 +1,9 @@
 """Benchmark every sum method at n = 1e6, 1e7, 1e8.
 
-    python -m parallel_sum.benchmark --sizes 1e6 1e7 1e8 --workers 4 --repeats 3
+    python -m parallel_sum.benchmark --sizes 1e6 1e7 1e8 --workers 4 --repeats 5
+
+Each method runs once at each size before it is timed (not counted), so the timed runs do not pay
+for first-touch memory. Speedups use medians; means and all runs are saved as well.
 """
 
 from __future__ import annotations
@@ -8,7 +11,7 @@ from __future__ import annotations
 import argparse
 import multiprocessing as mp
 
-from bench_common import efficiency, speedup, time_repeats, write_result
+from bench_common import OUTLIER_FACTOR, efficiency, speedup, time_repeats, write_result
 from parallel_sum.functions import calculate_sum_sequential
 from parallel_sum.numpy_sum import numpy_sum
 from parallel_sum.pool_sum import calculate_sum_pool
@@ -31,34 +34,39 @@ def methods(workers: int, start_method: str | None):
 
 def benchmark(sizes: list[int], workers: int, repeats: int, start_method: str | None = None) -> dict:
     rows = []
-    for fn, _ in methods(workers, start_method).values():
-        fn(1000)  # warm-up: one-time imports and lazy initialisation are not timed
     for n in sizes:
         expected = n * (n + 1) // 2
-        t_seq = None
+        t_seq = t_seq_mean = None
         for name, (fn, p) in methods(workers, start_method).items():
+            fn(n)  # warm-up at this size, not timed
             stats, value = time_repeats(lambda fn=fn, n=n: fn(n), repeats)
             if value != expected:
                 raise AssertionError(f"{name} gave {value} for n={n}, expected {expected}")
             if name == "sequential":
-                t_seq = stats.mean
-            assert t_seq is not None
+                t_seq, t_seq_mean = stats.median, stats.mean
+            assert t_seq is not None and t_seq_mean is not None
+            if stats.first_run_outlier:
+                print(f"info: {name} at n={n:.0e}: first timed run {stats.runs[0]:.4f} s is more than "
+                      f"{OUTLIER_FACTOR:g}x the median {stats.median:.4f} s")
             rows.append({
                 "n": n, "method": name, "workers": p,
-                "mean_s": stats.mean, "sd_s": stats.sd, "runs_s": list(stats.runs),
-                "speedup": speedup(t_seq, stats.mean),
-                "efficiency": efficiency(t_seq, stats.mean, p),
+                "median_s": stats.median, "mean_s": stats.mean, "sd_s": stats.sd, "runs_s": list(stats.runs),
+                "first_run_outlier": stats.first_run_outlier,
+                "speedup": speedup(t_seq, stats.median),
+                "speedup_of_means": speedup(t_seq_mean, stats.mean),
+                "efficiency": efficiency(t_seq, stats.median, p),
                 "sum": value, "correct": True,
             })
-    return {"sizes": sizes, "workers": workers, "repeats": repeats,
-            "start_method": start_method or mp.get_start_method(), "rows": rows}
+    return {"sizes": sizes, "workers": workers, "repeats": repeats, "warmup": "one untimed run per method and size",
+            "speedup_from": "median", "start_method": start_method or mp.get_start_method(), "rows": rows}
 
 
 def format_table(res: dict) -> str:
-    lines = ["| n | Method | p | Mean (s) | SD (s) | Speedup | Efficiency |", "|---|---|---|---|---|---|---|"]
+    lines = ["| n | Method | p | Median (s) | Mean (s) | SD (s) | Speedup | Efficiency |",
+             "|---|---|---|---|---|---|---|---|"]
     for r in res["rows"]:
-        lines.append(f"| {r['n']:.0e} | {r['method']} | {r['workers']} | {r['mean_s']:.4f} | {r['sd_s']:.4f} "
-                     f"| {r['speedup']:.2f} | {r['efficiency']:.2f} |")
+        lines.append(f"| {r['n']:.0e} | {r['method']} | {r['workers']} | {r['median_s']:.4f} | {r['mean_s']:.4f} "
+                     f"| {r['sd_s']:.4f} | {r['speedup']:.2f} | {r['efficiency']:.2f} |")
     return "\n".join(lines)
 
 
@@ -66,7 +74,7 @@ def main(argv: list[str] | None = None) -> dict:
     ap = argparse.ArgumentParser(description="Parallel sum of 1..n")
     ap.add_argument("--sizes", nargs="+", type=float, default=[1e6, 1e7, 1e8])
     ap.add_argument("--workers", type=int, default=4)
-    ap.add_argument("--repeats", type=int, default=3)
+    ap.add_argument("--repeats", type=int, default=5)
     ap.add_argument("--start-method", choices=["fork", "spawn", "forkserver"], default=None)
     ap.add_argument("--no-save", action="store_true")
     args = ap.parse_args(argv)

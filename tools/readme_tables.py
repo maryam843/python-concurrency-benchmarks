@@ -22,9 +22,11 @@ def t01(load):
 
 def t02(load):
     d = load("02_parallel_sum/parallel_sum.json")
-    return _table(["n", "Method", "p", "Time (s), mean ± sd of 3", "Speedup", "Efficiency", "Sum correct"],
-                  [[f"{r['n']:.0e}", r["method"], str(r["workers"]), _ms(r, nd=4), f"{r['speedup']:.2f}x",
-                    f"{r['efficiency']:.2f}", "yes" if r["correct"] else "NO"] for r in d["rows"]])
+    return _table(["n", "Method", "p", f"Median time (s) of {d['repeats']}", "Mean ± sd (s)", "Speedup (medians)",
+                   "Efficiency", "Sum correct"],
+                  [[f"{r['n']:.0e}", r["method"], str(r["workers"]), f"{r['median_s']:.4f}", _ms(r, nd=4),
+                    f"{r['speedup']:.2f}x", f"{r['efficiency']:.2f}", "yes" if r["correct"] else "NO"]
+                   for r in d["rows"]])
 
 
 def t03_pool(load):
