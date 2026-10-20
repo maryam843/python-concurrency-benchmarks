@@ -15,7 +15,10 @@ from mpi_squares.core import MAX_N, chunk_counts, local_squares, peak_rss_mb, sq
 
 FOLDER = Path(__file__).resolve().parents[1]
 HAVE_MPI = shutil.which("mpiexec") is not None and importlib.util.find_spec("mpi4py") is not None
-needs_mpi = pytest.mark.skipif(not HAVE_MPI, reason="MPI runtime or mpi4py not installed (MPI tests run on Linux CI)")
+needs_mpi = pytest.mark.skipif(
+    not HAVE_MPI or scaling.root_needs_permission(),
+    reason="no MPI runtime or mpi4py (MPI tests run on Linux CI), or running as root without PCB_ALLOW_ROOT=1",
+)
 
 
 def mpirun(ranks, script, *args, timeout=120):
@@ -143,6 +146,17 @@ def test_regression_numpy_scalars_printed_on_2025_code(load_2025, tmp_path):
 @pytest.mark.mpi
 def test_regression_plain_numbers_on_2026_code():
     check_prints_plain_numbers(mpirun(2, FOLDER / "calculate_squares.py", 10).stdout)
+
+
+def test_mpi_env_allows_root_only_when_asked(monkeypatch):
+    for name in ("OMPI_ALLOW_RUN_AS_ROOT", "OMPI_ALLOW_RUN_AS_ROOT_CONFIRM", "PCB_ALLOW_ROOT"):
+        monkeypatch.delenv(name, raising=False)
+    env = scaling.mpi_env()
+    assert "OMPI_ALLOW_RUN_AS_ROOT" not in env and "OMPI_ALLOW_RUN_AS_ROOT_CONFIRM" not in env
+    monkeypatch.setenv("PCB_ALLOW_ROOT", "1")
+    env = scaling.mpi_env()
+    assert env["OMPI_ALLOW_RUN_AS_ROOT"] == "1" and env["OMPI_ALLOW_RUN_AS_ROOT_CONFIRM"] == "1"
+    assert not scaling.root_needs_permission()
 
 
 def test_scaling_requires_mpiexec(monkeypatch):

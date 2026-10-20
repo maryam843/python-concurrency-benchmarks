@@ -11,6 +11,7 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
+from mpi_squares.scaling import root_needs_permission
 from nyc_taxi import download, stage1_io, stage2_cpu, stage3_mpi, stage4_sql
 from nyc_taxi.cleaning import RULES, clean
 from nyc_taxi.config import file_name, month_from_path, url
@@ -21,6 +22,7 @@ FIX = REPO / "tests" / "fixtures" / "taxi"
 MONTHS = ["2025-01", "2025-02", "2025-03"]
 PATHS = [FIX / file_name(m) for m in MONTHS]
 HAVE_MPI = shutil.which("mpiexec") is not None and importlib.util.find_spec("mpi4py") is not None
+ROOT_BLOCKED = root_needs_permission()  # Open MPI refuses root unless PCB_ALLOW_ROOT=1
 
 
 def independent_clean(df: pd.DataFrame, month: str) -> pd.DataFrame:
@@ -293,7 +295,8 @@ def test_round_robin_share():
 
 
 @pytest.mark.mpi
-@pytest.mark.skipif(not HAVE_MPI, reason="MPI runtime or mpi4py not installed (MPI tests run on Linux CI)")
+@pytest.mark.skipif(not HAVE_MPI or ROOT_BLOCKED,
+                    reason="no MPI runtime or mpi4py (MPI tests run on Linux CI), or root without PCB_ALLOW_ROOT=1")
 def test_stage3_mpi_identical_to_sequential(monkeypatch):
     monkeypatch.setattr(stage3_mpi, "write_result", lambda *a, **k: None)
     res = stage3_mpi.main(["--months", *MONTHS, "--data-dir", str(FIX), "--ranks", "1", "2", "4",

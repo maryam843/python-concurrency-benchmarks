@@ -20,12 +20,19 @@ from bench_common import write_result
 SCRIPT = Path(__file__).resolve().parents[2] / "calculate_squares.py"
 
 
+def root_needs_permission() -> bool:
+    """True when running as root without PCB_ALLOW_ROOT=1, so Open MPI will refuse to start."""
+    return hasattr(os, "geteuid") and os.geteuid() == 0 and os.environ.get("PCB_ALLOW_ROOT") != "1"
+
+
 def mpi_env() -> dict:
     env = dict(os.environ)
-    # allow more ranks than cores on small CI runners, and running as root inside containers
+    # allow more ranks than cores on small CI runners
     env.setdefault("OMPI_MCA_rmaps_base_oversubscribe", "1")
-    env.setdefault("OMPI_ALLOW_RUN_AS_ROOT", "1")
-    env.setdefault("OMPI_ALLOW_RUN_AS_ROOT_CONFIRM", "1")
+    # running as root (containers, Colab) only when asked for with PCB_ALLOW_ROOT=1
+    if os.environ.get("PCB_ALLOW_ROOT") == "1":
+        env.setdefault("OMPI_ALLOW_RUN_AS_ROOT", "1")
+        env.setdefault("OMPI_ALLOW_RUN_AS_ROOT_CONFIRM", "1")
     return env
 
 
