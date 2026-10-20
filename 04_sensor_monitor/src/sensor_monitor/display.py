@@ -27,9 +27,8 @@ def _fmt(value, decimals):
 
 
 def render_lines(num_sensors, latest, averages):
-    lines = ["Current temperatures:"]
-    lines.append("Latest Temperatures: " + "  ".join(
-        f"Sensor {i}: {_fmt(latest[i], 1)}°C" for i in range(num_sensors)))
+    lines = ["Latest Temperatures: " + "  ".join(
+        f"Sensor {i}: {_fmt(latest[i], 1)}°C" for i in range(num_sensors))]
     lines.append("")
     lines.append("Sensor Averages:")
     for i in range(num_sensors):

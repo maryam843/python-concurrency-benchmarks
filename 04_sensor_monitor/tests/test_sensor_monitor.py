@@ -57,8 +57,8 @@ def test_wait_for_update_times_out_and_wakes():
 
 def test_render_lines_use_num_sensors():
     lines = display.render_lines(5, [1.0, None, 3.0, None, 5.0], [None] * 5)
-    assert len(lines) == 4 + 5
-    assert "Sensor 4: 5.0°C" in lines[1]
+    assert len(lines) == 3 + 5
+    assert lines[0].startswith("Latest Temperatures:") and "Sensor 4: 5.0°C" in lines[0]
     assert lines[-1] == "Sensor 4 Average: --°C"
 
 
@@ -83,7 +83,7 @@ def test_update_display_loop_redraws_and_stops():
     sensor.stop_event.set()
     t.join(timeout=2)
     assert not t.is_alive()
-    assert out.getvalue().count("\x1b[6A") >= 2
+    assert out.getvalue().count("\x1b[5A") >= 2
 
 
 def test_airquality_loader_handles_minus_200_and_empty_rows():
@@ -140,7 +140,7 @@ def test_main_live_display_random_mode(capsys):
     ns = importlib.import_module("runpy").run_path(str(REPO / "04_sensor_monitor" / "main.py"))
     ns["main"](["--duration", "0.6", "--sensor-interval", "0.05", "--process-interval", "0.2"])
     out = capsys.readouterr().out
-    assert "\x1b[7A" in out and "Sensor 2 Average:" in out
+    assert "\x1b[6A" in out and "Sensor 2 Average:" in out
 
 
 # ---------- T2 regression tests: each check guards a bug the 2025 code had ----------

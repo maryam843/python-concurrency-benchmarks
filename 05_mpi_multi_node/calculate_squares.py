@@ -16,11 +16,6 @@ from mpi4py import MPI
 from mpi_squares.core import run
 
 
-def square(n):
-    """Computes the square of a number."""
-    return n * n
-
-
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Squares of 1..n over MPI ranks")
     ap.add_argument("n", nargs="?", type=float, default=10)
