@@ -13,7 +13,7 @@ import multiprocessing
 import random
 import time
 
-from connection_pool.utils import log_to_file
+from connection_pool.utils import append_line, log_path
 
 
 class ConnectionPool:
@@ -68,24 +68,26 @@ class ConnectionPool:
 
 
 def access_database(pool: ConnectionPool, process_id: int, work_s: tuple[float, float] = (1, 2),
-                    seed: int | None = None, timeout: float | None = None, log_file: str | None = None) -> None:
-    """Simulates a process accessing the database."""
+                    seed: int | None = None, timeout: float | None = None, log_file: str | None = None,
+                    log_lock=None) -> None:
+    """Simulates a process accessing the database. `log_file` is a full path; `log_lock` keeps lines whole."""
     rng = random.Random(None if seed is None else seed + process_id)
-    if log_file:
-        log_to_file(log_file, f"Process {process_id}: Waiting for connection...")
+
+    def log(message: str) -> None:
+        if log_file:
+            append_line(log_file, f"Process {process_id}: {message}", log_lock)
+
+    log("Waiting for connection...")
     conn = pool.get_connection(timeout=timeout)
     if conn is None:
-        if log_file:
-            log_to_file(log_file, f"Process {process_id}: Timed out waiting for a connection")
+        log("Timed out waiting for a connection")
         return
     try:
-        if log_file:
-            log_to_file(log_file, f"Process {process_id}: Acquired {conn}")
+        log(f"Acquired {conn}")
         time.sleep(rng.uniform(*work_s))  # Simulate work
     finally:
         pool.release_connection(conn)
-        if log_file:
-            log_to_file(log_file, f"Process {process_id}: Released {conn}")
+        log(f"Released {conn}")
 
 
 def run_connection_pool(num_processes: int = 8, size: int = 2, work_s=(1, 2), seed: int | None = 0,
@@ -94,10 +96,12 @@ def run_connection_pool(num_processes: int = 8, size: int = 2, work_s=(1, 2), se
     """Start `num_processes` processes that share a pool of `size` connections."""
     ctx = multiprocessing.get_context(start_method)
     pool = ConnectionPool(size=size, ctx=ctx)
+    path = log_path(log_file) if log_file else None  # resolved here: workers may not share this process's env
+    lock = ctx.Lock()
     processes = []
     t0 = time.perf_counter()
     for i in range(num_processes):
-        p = ctx.Process(target=access_database, args=(pool, i, work_s, seed, timeout, log_file))
+        p = ctx.Process(target=access_database, args=(pool, i, work_s, seed, timeout, path, lock))
         p.start()
         processes.append(p)
     for p in processes:

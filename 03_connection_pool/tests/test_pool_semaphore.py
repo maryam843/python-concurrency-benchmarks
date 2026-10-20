@@ -63,6 +63,19 @@ def test_invalid_pool_size():
         ConnectionPool(0)
 
 
+def test_log_lines_from_many_processes_stay_whole(tmp_path):
+    import multiprocessing as mp
+
+    path, lock = str(tmp_path / "many.log"), mp.Lock()
+    line = "x" * 5000  # longer than one write buffer, so unlocked appends could interleave
+    procs = [mp.Process(target=utils.append_line, args=(path, line, lock)) for _ in range(8)]
+    for p in procs:
+        p.start()
+    for p in procs:
+        p.join()
+    assert Path(path).read_text().splitlines() == [line] * 8
+
+
 def test_utils_save_json(tmp_path):
     utils.save_json("x.json", {"a": 1})
     assert open(f"{utils.OUTPUT_PATH}/x.json").read().strip().startswith("{")
