@@ -26,7 +26,7 @@ def mpirun(ranks, script, *args, timeout=120):
     return subprocess.run(cmd, capture_output=True, text=True, env=scaling.mpi_env(), timeout=timeout)
 
 
-# ---------- T1 unit ----------
+# ---------- unit tests ----------
 def test_chunk_counts_match_lab_split():
     assert chunk_counts(10, 4) == ([3, 3, 2, 2], [0, 3, 6, 8])
     assert chunk_counts(0, 3) == ([0, 0, 0], [0, 0, 0])
@@ -46,7 +46,7 @@ def test_local_squares_and_checksum():
     assert rss > 0 or rss != rss  # NaN on Windows
 
 
-# ---------- T3 property ----------
+# ---------- property ----------
 @given(n=st.integers(0, 10**7), size=st.integers(1, 256))
 def test_chunks_are_contiguous_and_balanced(n, size):
     counts, displs = chunk_counts(n, size)
@@ -62,7 +62,7 @@ def test_pieces_concatenate_to_all_squares(n, size):
     assert pieces.tolist() == [i * i for i in range(1, n + 1)]
 
 
-# ---------- T4 integration (real mpiexec) ----------
+# ---------- integration (real mpiexec) ----------
 @needs_mpi
 @pytest.mark.mpi
 @pytest.mark.parametrize("ranks", [1, 2, 4])
@@ -124,7 +124,7 @@ def test_scaling_cli_needs_five_repeats():
         scaling.main(["--repeats", "3", "--no-save"])
 
 
-# ---------- T2 regression: each check guards a bug the 2025 code had ----------
+# ---------- regression: each check guards a bug the 2025 code had ----------
 def check_runs_with_one_rank(script: Path):
     proc = mpirun(1, script)
     errors = [line for line in proc.stderr.splitlines() if "Error" in line or "Exception" in line]

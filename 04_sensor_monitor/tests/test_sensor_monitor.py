@@ -26,7 +26,7 @@ def _clean_state():
     sensor.reset_state()
 
 
-# ---------- T1 unit ----------
+# ---------- unit tests ----------
 def test_drain_and_update_keeps_readings_and_float_averages_apart():
     q = Queue()
     for sid, t in [(0, 20), (0, 30), (1, 10), (0, 40)]:
@@ -110,7 +110,7 @@ def test_finite_source_ends_sensor_thread():
     assert sensor.missing_counts == {0: 1} and sensor.rows_consumed == {0: 3}
 
 
-# ---------- T4 integration: ~3 s run on the fixture ----------
+# ---------- integration: ~3 s run on the fixture ----------
 def test_three_second_run_with_fixture_data_matches_pandas():
     n = 3
     sources = airquality.make_sources(FIXTURE, n, offset_rows=50)
@@ -143,7 +143,7 @@ def test_main_live_display_random_mode(capsys):
     assert "\x1b[6A" in out and "Sensor 2 Average:" in out
 
 
-# ---------- T2 regression tests: each check guards a bug the 2025 code had ----------
+# ---------- regression tests: each check guards a bug the 2025 code had ----------
 
 
 def _watch_thread_errors(monkeypatch):

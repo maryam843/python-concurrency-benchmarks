@@ -7,7 +7,7 @@ from threads_vs_processes import benchmark as bm
 from threads_vs_processes.workloads import generate_and_add_numbers, generate_and_join_letters, run_task
 
 
-# T1 unit
+# unit tests
 def test_workloads_are_deterministic_with_seed():
     assert generate_and_add_numbers(1000, seed=7) == generate_and_add_numbers(1000, seed=7)
     assert generate_and_join_letters(1000, seed=7) == generate_and_join_letters(1000, seed=7)
@@ -40,7 +40,7 @@ def test_run_task_dispatch():
     assert run_task(("letters", 5, 1)) == generate_and_join_letters(5, 1)
 
 
-# T3 property: splitting never changes the total amount of work
+# property: splitting never changes the total amount of work
 @given(n=st.integers(min_value=0, max_value=10**8), k=st.integers(min_value=1, max_value=16))
 def test_make_tasks_preserves_total_work(n, k):
     tasks = bm.make_tasks(n, k, seed=0)
@@ -55,7 +55,7 @@ def test_efficiency_is_speedup_over_p(t_seq, t_par, p):
     assert efficiency(t_seq, t_par, p) == pytest.approx((t_seq / t_par) / p)
 
 
-# T4 integration: every config returns exactly the sequential answer for the same task list
+# integration: every config returns exactly the sequential answer for the same task list
 @pytest.mark.parametrize("cfg", bm.CONFIGS, ids=lambda c: c.name)
 def test_every_config_matches_sequential(cfg):
     tasks = bm.make_tasks(3001, cfg.per_function, seed=11)
@@ -91,7 +91,7 @@ def test_benchmark_detects_wrong_result(monkeypatch):
         bm.benchmark(200, 1, seed=0)
 
 
-# T8 reproducibility: same seed -> identical results
+# reproducibility: same seed -> identical results
 def test_same_seed_same_results():
     a = bm.run_sequential(bm.make_tasks(2000, 2, seed=42))
     b = bm.run_sequential(bm.make_tasks(2000, 2, seed=42))
@@ -100,9 +100,9 @@ def test_same_seed_same_results():
     assert a != c
 
 
-# T2 regression: the 2025 notebook divided by np = 4 although only 2 workers ran
+# regression: the 2025 notebook divided by np = 4 although only 2 workers ran
 def check_efficiency_uses_real_p(efficiency_fn):
-    """Regression check (bug B06): 1 process per function = 2 workers, so efficiency must be S/2."""
+    """Regression check: 1 process per function = 2 workers, so efficiency must be S/2."""
     t_seq, t_par = 1.8, 1.0
     assert efficiency_fn(t_seq, t_par, 2) == pytest.approx((t_seq / t_par) / 2)
 

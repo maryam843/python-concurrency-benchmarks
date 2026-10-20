@@ -18,7 +18,7 @@ RES = REPO / "results"
 OUT = REPO / "figures"
 
 SURFACE, INK, INK2, GRID = "#fcfcfb", "#0b0b0b", "#52514e", "#e4e3df"
-SERIES = ["#2a78d6", "#eb6834", "#1baf7a"]  # validated categorical slots 1-3 (light)
+SERIES = ["#2a78d6", "#eb6834", "#1baf7a"]  # three colour-blind-safe colours
 IDEAL = "#9a9994"
 
 plt.rcParams.update({

@@ -26,7 +26,7 @@ def max_concurrency_from_log(log):
     return peak
 
 
-# ---------- T4 integration ----------
+# ---------- integration ----------
 @pytest.mark.parametrize("start_method", [None, "spawn"])
 def test_all_8_processes_get_a_connection_and_never_more_than_2(start_method):
     s = run_connection_pool(8, 2, work_s=(0.05, 0.15), seed=1, start_method=start_method, log_file="log.txt")
@@ -81,7 +81,7 @@ def test_utils_save_json(tmp_path):
     assert open(f"{utils.OUTPUT_PATH}/x.json").read().strip().startswith("{")
 
 
-# ---------- T3 property ----------
+# ---------- property ----------
 @settings(max_examples=15, deadline=None)
 @given(nums=st.lists(st.integers(-10**9, 10**9), max_size=300), workers=st.integers(1, 3))
 def test_all_square_methods_agree(nums, workers):
@@ -122,7 +122,7 @@ def test_main_demo_runs():
     assert s["acquired"] == 4
 
 
-# ---------- T2 regression: every process must eventually get a connection ----------
+# ---------- regression: every process must eventually get a connection ----------
 def check_every_process_gets_a_connection(acquired_count, num_processes=8):
     assert acquired_count == num_processes
 

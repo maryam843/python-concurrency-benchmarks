@@ -24,7 +24,7 @@ def closed_form(n):
     return n * (n + 1) // 2
 
 
-# ---------- T1 unit ----------
+# ---------- unit tests ----------
 def test_chunk_bounds_cover_range_without_gaps():
     assert chunk_bounds(10, 3) == [(1, 3), (4, 6), (7, 10)]
     with pytest.raises(ValueError):
@@ -59,7 +59,7 @@ def test_small_n_including_fewer_items_than_workers(n):
     assert calculate_sum_pool(n, 4) == closed_form(n)
 
 
-# ---------- T3 property tests: every method equals n(n+1)/2 ----------
+# ---------- property tests: every method equals n(n+1)/2 ----------
 @given(n=st.integers(0, 200_000), p=st.integers(1, 64))
 def test_chunks_partition_1_to_n(n, p):
     bounds = chunk_bounds(n, p)
@@ -88,7 +88,7 @@ def test_process_methods_property(n, p):
     assert calculate_sum_pool(n, p) == closed_form(n)
 
 
-# ---------- T4 integration ----------
+# ---------- integration ----------
 def test_all_methods_at_1e6_and_under_spawn():
     n = 10**6
     for fn, _ in bm.methods(4, "spawn").values():
@@ -143,7 +143,7 @@ def test_main_script_prints_correct_sums_and_gustafson():
     assert "Gustafson's Speedup (Process): 3.70" in out
 
 
-# ---------- T2 regression tests: each check guards a bug the 2025 code had ----------
+# ---------- regression tests: each check guards a bug the 2025 code had ----------
 
 
 def check_sum_correct_at_1e6(fn):

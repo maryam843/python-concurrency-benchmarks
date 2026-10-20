@@ -1,8 +1,9 @@
 """Squares of 1..n spread over MPI ranks, with NumPy arrays instead of Python lists.
 
 2025 (course script): every rank built a Python list of NumPy scalars and rank 0 gathered them with
-comm.gather (pickled objects). At n = 1e7 rank 0 used about 3 GB and at n = 1e8 the run was killed
-for running out of memory (15 GB machine, 2026 audit re-run).
+comm.gather (pickled objects). At n = 1e7 rank 0 used about 3 GB
+(results/05_mpi_multi_node/legacy_2025_calculate_squares.json), so n = 1e8 would need about ten times
+that and does not fit in the 15 GB of the test machine.
 
 Now each rank fills one int64 array (8 bytes per square) and rank 0 receives the pieces straight into
 one preallocated array with comm.Gatherv (a buffer copy, no pickling). With gather=False the squares

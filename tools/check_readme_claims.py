@@ -1,4 +1,4 @@
-"""Check that every number in the READMEs comes from a file in results/ (T11).
+"""Check that every number in the READMEs comes from a file in results/.
 
 Two ways a README may state a result:
 

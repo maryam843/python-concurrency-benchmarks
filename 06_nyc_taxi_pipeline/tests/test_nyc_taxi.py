@@ -47,7 +47,7 @@ def reference():
     return pd.concat(frames), {m: len(pd.read_parquet(p)) for m, p in zip(MONTHS, PATHS, strict=True)}
 
 
-# ---------- T1 unit: cleaning rules ----------
+# ---------- unit tests: cleaning rules ----------
 def _frame(**overrides):
     base = {"tpep_pickup_datetime": pd.Timestamp("2025-01-10 08:00"), "tpep_dropoff_datetime": pd.Timestamp(
         "2025-01-10 08:20"), "passenger_count": 1.0, "trip_distance": 3.0, "fare_amount": 15.0, "PULocationID": 161}
@@ -92,7 +92,7 @@ def test_month_from_path_and_url():
     assert url("2025-07").endswith("/trip-data/yellow_tripdata_2025-07.parquet")
 
 
-# ---------- T3 property tests ----------
+# ---------- property tests ----------
 row = st.fixed_dictionaries({
     "minute": st.integers(-60 * 24 * 3, 60 * 24 * 34), "dur_s": st.integers(-600, 30000),
     "passenger_count": st.one_of(st.none(), st.integers(0, 9)), "trip_distance": st.floats(-5, 300),
@@ -147,7 +147,7 @@ def test_empty_month_summary():
     assert combine([s])["mean_fare"] == 0.0
 
 
-# ---------- T4 integration: stage 2 ----------
+# ---------- integration: stage 2 ----------
 @pytest.mark.parametrize("start_method", [None, "spawn"])
 def test_stage2_all_methods_identical(start_method):
     res = stage2_cpu.run(PATHS, [1, 2], repeats=1, start_method=start_method)
@@ -179,7 +179,7 @@ def test_stage2_detects_different_summaries(monkeypatch):
         stage2_cpu.run(PATHS, [1], repeats=1)
 
 
-# ---------- T4 integration: stage 1 against a local HTTP server ----------
+# ---------- integration: stage 1 against a local HTTP server ----------
 @pytest.fixture
 def local_server():
     handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(FIX))
@@ -252,7 +252,7 @@ def test_stage1_main_from_disk(monkeypatch):
     assert len(res["rows"]) == 2
 
 
-# ---------- T4 integration: stage 4 SQL vs pandas ----------
+# ---------- integration: stage 4 SQL vs pandas ----------
 def test_sql_answers_match_pandas(reference, tmp_path):
     ref, raw_counts = reference
     months = [summarise_month(p) for p in PATHS]
@@ -287,7 +287,7 @@ def test_stage4_main(tmp_path, monkeypatch):
                             "q4_longest_average_trip_month", "q5_share_cleaned_out"}
 
 
-# ---------- T4 integration: stage 3 MPI ----------
+# ---------- integration: stage 3 MPI ----------
 def test_round_robin_share():
     items = list(range(12))
     parts = [stage3_mpi.my_share(items, r, 4) for r in range(4)]
@@ -333,6 +333,6 @@ def test_real_urls_are_blocked_in_tests(tmp_path):
         download.download_months(["2025-01"], tmp_path, 1)
 
 
-# ---------- T8 reproducibility ----------
+# ---------- reproducibility ----------
 def test_summaries_are_reproducible():
     assert summary_key([summarise_month(p) for p in PATHS]) == summary_key([summarise_month(p) for p in PATHS])

@@ -1,4 +1,4 @@
-"""Execute every notebook in the repo headless (T13); outputs are not written back.
+"""Execute every notebook in the repo headless; outputs are not written back.
 
     python tools/run_notebooks.py              # lab size (N = 1e7 in the Lab 2 notebook)
     PCB_NOTEBOOK_N=200000 python tools/run_notebooks.py   # quick run (CI)

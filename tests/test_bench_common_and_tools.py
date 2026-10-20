@@ -61,7 +61,7 @@ def test_write_result(tmp_path):
     assert doc["seed"] == 7 and doc["rows"] == [1] and "timestamp_utc" in doc and "machine" in doc
 
 
-# ---------- T12 scanner logic ----------
+# ---------- scanner logic ----------
 # Test inputs are assembled at runtime so this file itself never contains an address or a user path.
 AT, HOME = "@", "/" + "home" + "/"
 EMAIL = "someone" + AT + "example.com"
@@ -123,7 +123,7 @@ def test_fixture_generator_is_reproducible(tmp_path):
     assert a.read_text() == b.read_text() == (REPO / "tests/fixtures/air_quality_tiny.csv").read_text()
 
 
-# ---------- T11 claims checker logic ----------
+# ---------- claims checker logic ----------
 def test_claims_checker(tmp_path, monkeypatch):
     chk = _load_tool("check_readme_claims")
     (tmp_path / "r").mkdir()

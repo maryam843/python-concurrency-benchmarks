@@ -1,10 +1,10 @@
 """Sensor threads and the processing thread (Lab 4, 2025; fixed in 2026).
 
 2025 bugs fixed here:
-- B19: temperature_averages held a list of readings and was then overwritten with a float, so the
+- Averages: temperature_averages held a list of readings and was then overwritten with a float, so the
   processor thread crashed on each sensor's second reading ("'float' object has no attribute
   'append'"). Readings now live in sensor_readings; temperature_averages only holds floats.
-- B20: the processor took one item and then slept 5 s while sensors added 3 items per second, so
+- Queue growth: the processor took one item and then slept 5 s while sensors added 3 items per second, so
   the queue grew without bound. It now drains the whole queue every interval and then updates
   the averages.
 - The Condition the lab asked for existed only as a comment. `condition` now tells the display

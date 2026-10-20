@@ -44,7 +44,7 @@ def _fetch(src_url: str, part: Path, timeout: float) -> tuple[int, str]:
 def download_file(src_url: str, dest: Path, timeout: float = 120, attempts: int = 3) -> dict:
     """Stream src_url to dest (via a .part file), hashing while writing.
 
-    A connection can end early without an error (seen through the session's HTTPS proxy), so the
+    A connection can end early without an error (it happened to me behind an HTTPS proxy), so the
     byte count is checked against Content-Length and a short transfer is retried.
     """
     dest.parent.mkdir(parents=True, exist_ok=True)
