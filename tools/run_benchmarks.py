@@ -22,7 +22,7 @@ STEPS = [
     ("04", "download UCI Air Quality", [PY, "04_sensor_monitor/download_air_quality.py"]),
     ("01", "threads vs processes, n = 1e7, 5 repeats", [PY, "-m", "threads_vs_processes.benchmark"]),
     ("02", "parallel sum, n = 1e6/1e7/1e8", [PY, "-m", "parallel_sum.benchmark"]),
-    ("03", "connection pool demo", [PY, "03_connection_pool/main.py"]),
+    ("03", "connection pool demo", [PY, "03_connection_pool/main.py", "--save"]),
     ("03", "pool benchmarks, n = 1e5/1e6", [PY, "-m", "connection_pool.benchmark"]),
     ("04", "sensor monitor, real data, 12 s headless", [PY, "04_sensor_monitor/main.py", "--mode", "data",
                                                          "--headless", "--duration", "12", "--save"]),

@@ -120,6 +120,26 @@ def test_main_demo_runs():
     ns = runpy.run_path(str(Path(__file__).resolve().parents[1] / "main.py"))
     s = ns["main"](["--work", "0.01", "0.02", "--no-save", "--processes", "4"])
     assert s["acquired"] == 4
+    assert not Path(utils.OUTPUT_PATH, "connection_pool_run.json").exists()
+
+
+def test_main_demo_writes_outputs_by_default_and_results_only_with_save(tmp_path, monkeypatch):
+    import json
+
+    import bench_common.results
+
+    results = tmp_path / "results"
+    monkeypatch.setattr(bench_common.results, "RESULTS_DIR", results)
+    ns = runpy.run_path(str(Path(__file__).resolve().parents[1] / "main.py"))
+    ns["main"](["--work", "0.01", "0.02", "--processes", "2"])
+    out = Path(utils.OUTPUT_PATH, "connection_pool_run.json")
+    assert json.loads(out.read_text())["acquired"] == 2
+    assert Path(utils.OUTPUT_PATH, "parallel_logs.txt").exists()
+    assert not results.exists()  # the default run never touches results/
+    ns["main"](["--work", "0.01", "0.02", "--processes", "2", "--save"])
+    assert json.loads((results / "03_connection_pool" / "connection_pool_run.json").read_text())["acquired"] == 2
+    with pytest.raises(SystemExit):
+        ns["main"](["--save", "--no-save"])
 
 
 # ---------- regression: every process must eventually get a connection ----------
