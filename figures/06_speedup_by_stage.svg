@@ -715,8 +715,8 @@ L 704.163281 248.44
    </g>
    <g id="line2d_81">
     <path d="M 513.714671 224.547009 
-L 556.998446 196.026566 
-L 643.565996 169.262244 
+L 556.998446 209.446151 
+L 643.565996 182.83727 
 " clip-path="url(#p477a62e7a0)" style="fill: none; stroke: #1baf7a; stroke-width: 2; stroke-linecap: square"/>
     <defs>
      <path id="mbab7544c4c" d="M 0 4 
@@ -733,12 +733,12 @@ z
     </defs>
     <g clip-path="url(#p477a62e7a0)">
      <use xlink:href="#mbab7544c4c" x="513.714671" y="224.547009" style="fill: #1baf7a; stroke: #fcfcfb; stroke-width: 2"/>
-     <use xlink:href="#mbab7544c4c" x="556.998446" y="196.026566" style="fill: #1baf7a; stroke: #fcfcfb; stroke-width: 2"/>
-     <use xlink:href="#mbab7544c4c" x="643.565996" y="169.262244" style="fill: #1baf7a; stroke: #fcfcfb; stroke-width: 2"/>
+     <use xlink:href="#mbab7544c4c" x="556.998446" y="209.446151" style="fill: #1baf7a; stroke: #fcfcfb; stroke-width: 2"/>
+     <use xlink:href="#mbab7544c4c" x="643.565996" y="182.83727" style="fill: #1baf7a; stroke: #fcfcfb; stroke-width: 2"/>
     </g>
    </g>
    <g id="text_29">
-    <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #52514e" x="651.565996" y="171.600486" transform="rotate(-0 651.565996 171.600486)">MPI ranks</text>
+    <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #52514e" x="651.565996" y="185.175512" transform="rotate(-0 651.565996 185.175512)">MPI ranks</text>
    </g>
    <g id="text_30">
     <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #0b0b0b" x="507.222105" y="42.856" transform="rotate(-0 507.222105 42.856)">Stage 3: MPI, months per rank</text>
