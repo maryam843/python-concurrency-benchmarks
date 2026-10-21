@@ -1,11 +1,11 @@
 {
   "name": "connection_pool_run",
-  "timestamp_utc": "2026-09-30T18:02:02+00:00",
+  "timestamp_utc": "2026-10-20T20:38:28+00:00",
   "seed": 0,
   "machine": {
-    "os": "Linux 6.18.44-fc-v50",
+    "os": "Linux 6.18.44-fc-v139",
     "machine": "x86_64",
-    "cpu_model": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "cpu_model": "Intel(R) Xeon(R) Processor @ 2.10GHz",
     "logical_cpus": 4,
     "memory_gb": 15.7,
     "python": "3.12.3",
@@ -32,7 +32,7 @@
     0,
     0
   ],
-  "elapsed_s": 6.6082126780002,
+  "elapsed_s": 6.335114721000082,
   "log": [
     {
       "t": 0.0,
@@ -41,93 +41,93 @@
       "holders_after": 1
     },
     {
-      "t": 0.005695819854736328,
+      "t": 0.004152774810791016,
       "event": "acquired",
       "conn": "DB_Conn_1",
       "holders_after": 2
     },
     {
-      "t": 1.1503393650054932,
-      "event": "released",
-      "conn": "DB_Conn_1",
-      "holders_after": 1
-    },
-    {
-      "t": 1.1515674591064453,
-      "event": "acquired",
-      "conn": "DB_Conn_1",
-      "holders_after": 2
-    },
-    {
-      "t": 1.850379228591919,
+      "t": 1.8468635082244873,
       "event": "released",
       "conn": "DB_Conn_0",
       "holders_after": 1
     },
     {
-      "t": 1.8515756130218506,
+      "t": 1.847933292388916,
       "event": "acquired",
       "conn": "DB_Conn_0",
       "holders_after": 2
     },
     {
-      "t": 3.110079288482666,
+      "t": 1.9634323120117188,
       "event": "released",
       "conn": "DB_Conn_1",
       "holders_after": 1
     },
     {
-      "t": 3.11122465133667,
+      "t": 1.9645121097564697,
       "event": "acquired",
       "conn": "DB_Conn_1",
       "holders_after": 2
     },
     {
-      "t": 3.476414918899536,
+      "t": 2.9839866161346436,
       "event": "released",
       "conn": "DB_Conn_0",
       "holders_after": 1
     },
     {
-      "t": 3.4777445793151855,
+      "t": 2.9852583408355713,
       "event": "acquired",
       "conn": "DB_Conn_0",
       "holders_after": 2
     },
     {
-      "t": 4.348891496658325,
+      "t": 3.2041914463043213,
       "event": "released",
       "conn": "DB_Conn_1",
       "holders_after": 1
     },
     {
-      "t": 4.350135564804077,
+      "t": 3.2055068016052246,
       "event": "acquired",
       "conn": "DB_Conn_1",
       "holders_after": 2
     },
     {
-      "t": 4.803433179855347,
+      "t": 4.223818302154541,
       "event": "released",
       "conn": "DB_Conn_0",
       "holders_after": 1
     },
     {
-      "t": 4.805033922195435,
+      "t": 4.22491979598999,
       "event": "acquired",
       "conn": "DB_Conn_0",
       "holders_after": 2
     },
     {
-      "t": 5.590013027191162,
+      "t": 5.000773906707764,
       "event": "released",
       "conn": "DB_Conn_1",
       "holders_after": 1
     },
     {
-      "t": 6.600424766540527,
+      "t": 5.001919269561768,
+      "event": "acquired",
+      "conn": "DB_Conn_1",
+      "holders_after": 2
+    },
+    {
+      "t": 5.852301597595215,
       "event": "released",
       "conn": "DB_Conn_0",
+      "holders_after": 1
+    },
+    {
+      "t": 6.327434301376343,
+      "event": "released",
+      "conn": "DB_Conn_1",
       "holders_after": 0
     }
   ]
