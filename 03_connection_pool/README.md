@@ -25,7 +25,7 @@ Two parts:
 <!-- table: t03_semaphore -->
 | Processes | Pool size | Got a connection | Max holders at once | Exit codes | Total time (s) |
 |---|---|---|---|---|---|
-| 8 | 2 | 8 | 2 | 0, 0, 0, 0, 0, 0, 0, 0 | 6.61 |
+| 8 | 2 | 8 | 2 | 0, 0, 0, 0, 0, 0, 0, 0 | 6.34 |
 <!-- /table -->
 
 Pool benchmarks (4 workers):

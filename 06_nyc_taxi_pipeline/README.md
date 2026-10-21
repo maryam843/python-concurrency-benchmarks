@@ -105,14 +105,15 @@ With one Arrow thread the sequential run got slower (11.80 s<!-- claim: 06_nyc_t
 ### Stage 3: MPI on one machine
 
 <!-- table: t06_stage3 -->
-| Ranks | Time (s), mean ± sd of 3 | Speedup vs 1 rank | Efficiency | Wall time incl. start-up (s) | Identical summaries |
-|---|---|---|---|---|---|
-| 1 | 14.81 ± 3.26 | 1.00x | 1.00 | 15.74 | yes |
-| 2 | 6.75 ± 0.17 | 2.19x | 1.10 | 7.72 | yes |
-| 4 | 4.47 ± 1.22 | 3.31x | 0.83 | 5.70 | yes |
+| Ranks | Binding | Median time (s) of 3 | Mean ± sd (s) | Speedup vs 1 rank | Speedup vs sequential | Efficiency | Wall time incl. start-up (s) | Identical summaries |
+|---|---|---|---|---|---|---|---|---|
+| 1 | Open MPI default | 9.69 | 10.58 ± 1.58 | 1.00x | 0.92x | 1.00 | 11.45 | yes |
+| 2 | Open MPI default | 5.94 | 6.08 ± 1.30 | 1.63x | 1.51x | 0.82 | 6.90 | yes |
+| 4 | Open MPI default | 3.53 | 4.03 ± 0.90 | 2.75x | 2.53x | 0.69 | 5.11 | yes |
+| 1 | `--bind-to none` (extra run) | 7.20 | 7.23 ± 0.75 | 1.35x | 1.24x | 1.35 | 8.08 | yes |
 <!-- /table -->
 
-MPI with 4 ranks reached 3.31x<!-- claim: 06_nyc_taxi_pipeline/stage3_mpi.json | rows[ranks=4].speedup_vs_1_rank | {:.2f}x --> over 1 rank (4.47 s<!-- claim: 06_nyc_taxi_pipeline/stage3_mpi.json | rows[ranks=4].mean_s | {:.2f} s -->), about the same wall time as 4 threads in stage 2 (4.09 s<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | rows[method=threads,workers=4].mean_s | {:.2f} s -->). The 1-rank run itself took 14.81 s<!-- claim: 06_nyc_taxi_pipeline/stage3_mpi.json | rows[ranks=1].mean_s | {:.2f} s -->, slower than stage 2's sequential run. My explanation, which the stage 2 control run above supports: Open MPI binds each rank to one core by default, so a single rank cannot use PyArrow's extra threads the way the sequential Python run can. That makes MPI's speedup look better than its absolute time. Starting the ranks added about one second each time (the "wall time incl. start-up" column). All three rank counts produced summaries identical to the sequential run. On one machine MPI bought nothing over a thread pool; it would matter with more months than one machine can hold or process in time.
+MPI with 4 ranks reached 2.75x<!-- claim: 06_nyc_taxi_pipeline/stage3_mpi.json | rows[ranks=4].speedup_vs_1_rank | {:.2f}x --> over 1 rank (4.03 s<!-- claim: 06_nyc_taxi_pipeline/stage3_mpi.json | rows[ranks=4].mean_s | {:.2f} s -->), about the same wall time as 4 threads in stage 2 (4.09 s<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | rows[method=threads,workers=4].mean_s | {:.2f} s -->). The 1-rank run itself took 10.58 s<!-- claim: 06_nyc_taxi_pipeline/stage3_mpi.json | rows[ranks=1].mean_s | {:.2f} s -->, slower than stage 2's sequential run. My explanation, which the stage 2 control run above supports: Open MPI binds each rank to one core by default, so a single rank cannot use PyArrow's extra threads the way the sequential Python run can. That makes MPI's speedup look better than its absolute time. Starting the ranks added about one second each time (the "wall time incl. start-up" column). All three rank counts produced summaries identical to the sequential run. On one machine MPI bought nothing over a thread pool; it would matter with more months than one machine can hold or process in time.
 
 ![Speedup by stage](../figures/06_speedup_by_stage.svg)
 
