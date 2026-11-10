@@ -1,6 +1,6 @@
-# Provided by DSAI3202 course staff (UDST, Spring 2025). Modified by me: yes (2026: n from the command
-# line, NumPy int64 arrays instead of Python lists, Gatherv/Reduce instead of gather, prints length,
-# last square and time, optional JSON output; the work split between ranks is unchanged).
+# Supplied with the original exercise and modified here: n from the command line, NumPy int64 arrays
+# instead of Python lists, Gatherv/Reduce instead of gather, prints length, last square and time,
+# optional JSON output; the work split between ranks is unchanged (see CREDITS.md).
 """Parallel squares with mpi4py.
 
     mpiexec -n 4 python 05_mpi_multi_node/calculate_squares.py 1e8

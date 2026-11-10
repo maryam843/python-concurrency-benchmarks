@@ -1,18 +1,15 @@
 # Credits
 
-## Course
+## Supplied material
 
-Originally built for DSAI3202 Parallel & Distributed Computing, University of Doha for Science and Technology (UDST), Spring 2025. The lab and assignment briefs were written by the course staff; they are not included in this repository.
+`05_mpi_multi_node/calculate_squares.py` and the mpi4py send/recv example in `05_mpi_multi_node/mpi_program.py` were supplied with the original exercise and are modified here:
 
-Course-provided material that appears here:
+| File | Changes |
+|---|---|
+| `05_mpi_multi_node/calculate_squares.py` | n from the command line, NumPy int64 arrays instead of Python lists, `Gatherv`/`reduce` instead of `gather`, prints length, last square and time, optional JSON output; the work split between ranks is unchanged |
+| `05_mpi_multi_node/mpi_program.py` | also works with a single rank (it sends to itself) |
 
-| File | Provided | Modified by me |
-|---|---|---|
-| `05_mpi_multi_node/calculate_squares.py` | DSAI3202 course staff, Lab 6 brief | yes, 2026: n from the command line, NumPy int64 arrays, Gatherv/Reduce, prints length, last square and time (see the header in the file) |
-| `05_mpi_multi_node/mpi_program.py` | the standard mpi4py send/recv example used in the Lab 6 brief | yes, 2026: works with one rank |
-| `01_threads_vs_processes/First_trials_with_threads_and_processes_with_performance_metrics.ipynb` | the notebook headings ("Add your interpretations and conclusions here" and the section titles) came from the Lab 2 template | the code cells are mine; fixed in 2026 |
-
-Everything else (the 2025 code in folders 01 to 05 and all 2026 code) is my own work.
+The section headings of the threads-vs-processes notebook (`01_threads_vs_processes/threads_vs_processes.ipynb`) come from the original exercise; its code cells are mine. Everything else in this repository is my own work.
 
 ## Data (downloaded by scripts, never committed)
 
