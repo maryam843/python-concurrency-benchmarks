@@ -1,11 +1,11 @@
 {
   "name": "stage1_download",
-  "timestamp_utc": "2026-09-30T17:58:14+00:00",
+  "timestamp_utc": "2026-11-10T18:19:41+00:00",
   "seed": null,
   "machine": {
-    "os": "Linux 6.18.44-fc-v50",
+    "os": "Linux 6.18.44-fc-v338",
     "machine": "x86_64",
-    "cpu_model": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "cpu_model": "Intel(R) Xeon(R) Processor @ 2.10GHz",
     "logical_cpus": 4,
     "memory_gb": 15.7,
     "python": "3.12.3",
@@ -33,48 +33,59 @@
     "2025-12"
   ],
   "repeats": 3,
+  "warmup": "one untimed run per setting",
+  "speedup_from": "median",
   "rows": [
     {
       "workers": 1,
       "runs_s": [
-        13.616930781000065,
-        15.026944414000354,
-        9.76454793899984
+        52.40860434000001,
+        42.771056474999966,
+        32.72122358800004
       ],
-      "mean_s": 12.80280771133342,
-      "retried_files": 1,
-      "sd_s": 2.724023025682243,
+      "median_s": 42.771056474999966,
+      "mean_s": 42.63362813433334,
+      "retried_files": 0,
+      "sd_s": 9.844409841639491,
+      "first_run_outlier": false,
       "bytes": 829973299,
       "speedup_vs_first": 1.0,
-      "throughput_mb_s": 64.82744392585725
+      "speedup_of_means": 1.0,
+      "throughput_mb_s": 19.4050221669209
     },
     {
       "workers": 4,
       "runs_s": [
-        3.8157221389997176,
-        3.731373469999653,
-        3.2890824019996217
+        12.034254732000022,
+        11.256940525999994,
+        11.526322292999907
       ],
-      "mean_s": 3.612059336999664,
-      "retried_files": 3,
-      "sd_s": 0.2828679018500276,
+      "median_s": 11.526322292999907,
+      "mean_s": 11.60583918366664,
+      "retried_files": 0,
+      "sd_s": 0.39471071132963004,
+      "first_run_outlier": false,
       "bytes": 829973299,
-      "speedup_vs_first": 3.5444621798400457,
-      "throughput_mb_s": 229.7784232109023
+      "speedup_vs_first": 3.710728833339617,
+      "speedup_of_means": 3.6734636297850263,
+      "throughput_mb_s": 72.00677526638779
     },
     {
       "workers": 8,
       "runs_s": [
-        5.140653229999771,
-        3.0996731599998384,
-        3.6035020900003474
+        7.187510703999919,
+        6.061977158000104,
+        6.299050532000024
       ],
-      "mean_s": 3.9479428266666523,
-      "retried_files": 5,
-      "sd_s": 1.063193057417444,
+      "median_s": 6.299050532000024,
+      "mean_s": 6.516179464666682,
+      "retried_files": 0,
+      "sd_s": 0.5933507991428437,
+      "first_run_outlier": false,
       "bytes": 829973299,
-      "speedup_vs_first": 3.24290605853154,
-      "throughput_mb_s": 210.22931066627612
+      "speedup_vs_first": 6.7900799108877194,
+      "speedup_of_means": 6.542733877344821,
+      "throughput_mb_s": 131.76165118594048
     }
   ]
 }

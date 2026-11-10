@@ -1,11 +1,11 @@
 {
   "name": "stage2_cpu",
-  "timestamp_utc": "2026-09-30T18:08:39+00:00",
+  "timestamp_utc": "2026-11-10T18:34:31+00:00",
   "seed": null,
   "machine": {
-    "os": "Linux 6.18.44-fc-v50",
+    "os": "Linux 6.18.44-fc-v338",
     "machine": "x86_64",
-    "cpu_model": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "cpu_model": "Intel(R) Xeon(R) Processor @ 2.10GHz",
     "logical_cpus": 4,
     "memory_gb": 15.7,
     "python": "3.12.3",
@@ -32,19 +32,24 @@
     "yellow_tripdata_2025-12.parquet"
   ],
   "repeats": 3,
+  "warmup": "one untimed run per configuration",
+  "speedup_from": "median",
   "start_method": "fork",
   "rows": [
     {
       "method": "sequential",
       "workers": 1,
       "runs_s": [
-        9.479417139999896,
-        8.309589426000002,
-        9.690392342999985
+        5.885144876999902,
+        5.990041236000025,
+        5.948694750999948
       ],
-      "mean_s": 9.159799636333295,
-      "sd_s": 0.7438216757976792,
+      "median_s": 5.948694750999948,
+      "mean_s": 5.941293621333291,
+      "sd_s": 0.05283837689717224,
+      "first_run_outlier": false,
       "speedup": 1.0,
+      "speedup_of_means": 1.0,
       "efficiency": 1.0,
       "identical_to_sequential": true
     },
@@ -52,84 +57,102 @@
       "method": "threads",
       "workers": 1,
       "runs_s": [
-        8.76105354900028,
-        8.599283588000162,
-        9.660416540999904
+        6.034642146999886,
+        6.073635573000047,
+        6.033002271999976
       ],
-      "mean_s": 9.006917892666783,
-      "sd_s": 0.5716972473262469,
-      "speedup": 1.0169738134052477,
-      "efficiency": 1.0169738134052477,
+      "median_s": 6.034642146999886,
+      "mean_s": 6.047093330666637,
+      "sd_s": 0.023000875386992387,
+      "first_run_outlier": false,
+      "speedup": 0.9857576648446891,
+      "speedup_of_means": 0.9825040389575596,
+      "efficiency": 0.9857576648446891,
       "identical_to_sequential": true
     },
     {
       "method": "threads",
       "workers": 2,
       "runs_s": [
-        5.725974684999983,
-        4.621332173000155,
-        6.060472388999642
+        3.7470199710000998,
+        3.693009761999974,
+        3.8229199170000356
       ],
-      "mean_s": 5.469259748999927,
-      "sd_s": 0.7531321657590366,
-      "speedup": 1.6747786824365392,
-      "efficiency": 0.8373893412182696,
+      "median_s": 3.7470199710000998,
+      "mean_s": 3.7543165500000364,
+      "sd_s": 0.06526172034096048,
+      "first_run_outlier": false,
+      "speedup": 1.58758020961714,
+      "speedup_of_means": 1.5825233547057276,
+      "efficiency": 0.79379010480857,
       "identical_to_sequential": true
     },
     {
       "method": "threads",
       "workers": 4,
       "runs_s": [
-        4.897025513000244,
-        3.8419198830001733,
-        3.527922002000196
+        2.77807057300015,
+        2.7616828420000274,
+        2.8785191890001443
       ],
-      "mean_s": 4.0889557993335375,
-      "sd_s": 0.7172037115960596,
-      "speedup": 2.240131731877918,
-      "efficiency": 0.5600329329694795,
+      "median_s": 2.77807057300015,
+      "mean_s": 2.806090868000107,
+      "sd_s": 0.06325769276535777,
+      "first_run_outlier": false,
+      "speedup": 2.141304403428353,
+      "speedup_of_means": 2.1172848281879175,
+      "efficiency": 0.5353261008570882,
       "identical_to_sequential": true
     },
     {
       "method": "processes",
       "workers": 1,
       "runs_s": [
-        9.142423632999908,
-        9.754499299000145,
-        10.489399372999742
+        6.5542048429999795,
+        6.76020787199991,
+        6.497858124999993
       ],
-      "mean_s": 9.795440768333265,
-      "sd_s": 0.6744205394043034,
-      "speedup": 0.9351084706616907,
-      "efficiency": 0.9351084706616907,
+      "median_s": 6.5542048429999795,
+      "mean_s": 6.604090279999961,
+      "sd_s": 0.1381059921083781,
+      "first_run_outlier": false,
+      "speedup": 0.9076150186781653,
+      "speedup_of_means": 0.8996384618372186,
+      "efficiency": 0.9076150186781653,
       "identical_to_sequential": true
     },
     {
       "method": "processes",
       "workers": 2,
       "runs_s": [
-        7.562961251999695,
-        5.404868102999899,
-        5.671911971999634
+        3.7433618319998914,
+        3.79937958000005,
+        3.830231711999886
       ],
-      "mean_s": 6.2132471089997425,
-      "sd_s": 1.1764881248245387,
-      "speedup": 1.474237138108597,
-      "efficiency": 0.7371185690542985,
+      "median_s": 3.79937958000005,
+      "mean_s": 3.790991041333276,
+      "sd_s": 0.044038275380926806,
+      "first_run_outlier": false,
+      "speedup": 1.565701616736033,
+      "speedup_of_means": 1.567213838427791,
+      "efficiency": 0.7828508083680165,
       "identical_to_sequential": true
     },
     {
       "method": "processes",
       "workers": 4,
       "runs_s": [
-        5.969979291999607,
-        4.480727057999957,
-        3.7091390219998175
+        2.7527002690001154,
+        2.422428097999955,
+        2.6354260989999148
       ],
-      "mean_s": 4.719948457333127,
-      "sd_s": 1.1492475103463877,
-      "speedup": 1.9406567082532886,
-      "efficiency": 0.48516417706332216,
+      "median_s": 2.6354260989999148,
+      "mean_s": 2.603518155333328,
+      "sd_s": 0.16743211874088665,
+      "first_run_outlier": false,
+      "speedup": 2.2572041588482956,
+      "speedup_of_means": 2.2820250395268045,
+      "efficiency": 0.5643010397120739,
       "identical_to_sequential": true
     }
   ],

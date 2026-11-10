@@ -1,9 +1,9 @@
 {
   "name": "stage3_mpi",
-  "timestamp_utc": "2026-10-20T20:48:54+00:00",
+  "timestamp_utc": "2026-11-10T18:38:57+00:00",
   "seed": null,
   "machine": {
-    "os": "Linux 6.18.44-fc-v139",
+    "os": "Linux 6.18.44-fc-v338",
     "machine": "x86_64",
     "cpu_model": "Intel(R) Xeon(R) Processor @ 2.10GHz",
     "logical_cpus": 4,
@@ -35,70 +35,70 @@
   "speedup_from": "median",
   "sequential": {
     "runs_s": [
-      8.93733735800015,
-      10.231759636999868,
-      7.554978917999961
+      6.150310079000064,
+      6.320154737000166,
+      6.204889962000152
     ],
-    "median_s": 8.93733735800015,
-    "mean_s": 8.908025304333327
+    "median_s": 6.204889962000152,
+    "mean_s": 6.225118259333461
   },
   "rows": [
     {
       "ranks": 1,
       "binding": "default",
       "runs_s": [
-        12.401084645,
-        9.650766051,
-        9.689095606
+        8.087141641,
+        8.107300813,
+        8.211079598
       ],
-      "median_s": 9.689095606,
-      "mean_s": 10.580315434,
-      "sd_s": 1.57694885094311,
+      "median_s": 8.107300813,
+      "mean_s": 8.135174017333334,
+      "sd_s": 0.06650444298082053,
       "first_run_outlier": false,
-      "wall_incl_startup_mean_s": 11.451171410333245,
+      "wall_incl_startup_mean_s": 8.940004309333366,
       "identical_to_sequential": true,
       "bindings": [
         "MCW rank 0 bound to socket 0[core 0[hwt 0]]: [B/././.]"
       ],
       "speedup_vs_1_rank": 1.0,
       "efficiency": 1.0,
-      "speedup_vs_sequential": 0.9224119279477104
+      "speedup_vs_sequential": 0.7653459647199293
     },
     {
       "ranks": 2,
       "binding": "default",
       "runs_s": [
-        7.444563914,
-        5.936871688,
-        4.848952361
+        4.522756737,
+        4.287774215,
+        4.359753938
       ],
-      "median_s": 5.936871688,
-      "mean_s": 6.076795987666666,
-      "sd_s": 1.303450781865074,
+      "median_s": 4.359753938,
+      "mean_s": 4.3900949633333335,
+      "sd_s": 0.12039364507763115,
       "first_run_outlier": false,
-      "wall_incl_startup_mean_s": 6.900962190000125,
+      "wall_incl_startup_mean_s": 5.203697914333361,
       "identical_to_sequential": true,
       "bindings": [
         "MCW rank 0 bound to socket 0[core 0[hwt 0]]: [B/././.]",
         "MCW rank 1 bound to socket 0[core 1[hwt 0]]: [./B/./.]"
       ],
-      "speedup_vs_1_rank": 1.632020382987937,
-      "efficiency": 0.8160101914939685,
-      "speedup_vs_sequential": 1.5053950679218637
+      "speedup_vs_1_rank": 1.8595776110977391,
+      "efficiency": 0.9297888055488696,
+      "speedup_vs_sequential": 1.4232202207371805
     },
     {
       "ranks": 4,
       "binding": "default",
       "runs_s": [
-        5.07504246,
-        3.528839078,
-        3.500607796
+        2.341342715,
+        2.380214623,
+        2.399492516
       ],
-      "median_s": 3.528839078,
-      "mean_s": 4.034829778,
-      "sd_s": 0.9009611918201945,
+      "median_s": 2.380214623,
+      "mean_s": 2.373683284666667,
+      "sd_s": 0.02961998690754689,
       "first_run_outlier": false,
-      "wall_incl_startup_mean_s": 5.109916590666671,
+      "wall_incl_startup_mean_s": 3.3772623433333138,
       "identical_to_sequential": true,
       "bindings": [
         "MCW rank 0 is not bound (or bound to all available processors)",
@@ -106,31 +106,31 @@
         "MCW rank 2 is not bound (or bound to all available processors)",
         "MCW rank 3 is not bound (or bound to all available processors)"
       ],
-      "speedup_vs_1_rank": 2.745689273961277,
-      "efficiency": 0.6864223184903192,
-      "speedup_vs_sequential": 2.5326565367399705
+      "speedup_vs_1_rank": 3.406121756693367,
+      "efficiency": 0.8515304391733417,
+      "speedup_vs_sequential": 2.606861541830025
     }
   ],
   "bind_to_none": {
     "ranks": 1,
     "binding": "none",
     "runs_s": [
-      7.202449337,
-      6.487574,
-      7.990167415
+      6.246722458,
+      5.997297863,
+      6.093859877
     ],
-    "median_s": 7.202449337,
-    "mean_s": 7.226730250666667,
-    "sd_s": 0.7515909224948811,
+    "median_s": 6.093859877,
+    "mean_s": 6.112626732666667,
+    "sd_s": 0.12576686090317515,
     "first_run_outlier": false,
-    "wall_incl_startup_mean_s": 8.078551152666781,
+    "wall_incl_startup_mean_s": 6.939324610666593,
     "identical_to_sequential": true,
     "bindings": [
       "MCW rank 0 is not bound (or bound to all available processors)"
     ],
-    "speedup_vs_1_rank": 1.345250088220093,
-    "efficiency": 1.345250088220093,
-    "speedup_vs_sequential": 1.2408747274469234
+    "speedup_vs_1_rank": 1.330404862704394,
+    "efficiency": 1.330404862704394,
+    "speedup_vs_sequential": 1.0182199931145794
   },
   "yearly": {
     "months": [

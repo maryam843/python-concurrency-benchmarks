@@ -254,8 +254,8 @@ L 351.003906 209.294437
    </g>
    <g id="line2d_26">
     <path d="M 54.221489 163.873715 
-L 121.672038 137.692028 
-L 256.573137 97.87803 
+L 121.672038 146.908565 
+L 256.573137 145.890769 
 " clip-path="url(#pb2502d9fd7)" style="fill: none; stroke: #2a78d6; stroke-width: 2; stroke-linecap: square"/>
     <defs>
      <path id="mf35b9502aa" d="M 0 4 
@@ -272,17 +272,17 @@ z
     </defs>
     <g clip-path="url(#pb2502d9fd7)">
      <use xlink:href="#mf35b9502aa" x="54.221489" y="163.873715" style="fill: #2a78d6; stroke: #fcfcfb; stroke-width: 2"/>
-     <use xlink:href="#mf35b9502aa" x="121.672038" y="137.692028" style="fill: #2a78d6; stroke: #fcfcfb; stroke-width: 2"/>
-     <use xlink:href="#mf35b9502aa" x="256.573137" y="97.87803" style="fill: #2a78d6; stroke: #fcfcfb; stroke-width: 2"/>
+     <use xlink:href="#mf35b9502aa" x="121.672038" y="146.908565" style="fill: #2a78d6; stroke: #fcfcfb; stroke-width: 2"/>
+     <use xlink:href="#mf35b9502aa" x="256.573137" y="145.890769" style="fill: #2a78d6; stroke: #fcfcfb; stroke-width: 2"/>
     </g>
    </g>
    <g id="text_15">
-    <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #52514e" x="264.573137" y="100.215921" transform="rotate(-0 264.573137 100.215921)">n = 1e+07</text>
+    <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #52514e" x="264.573137" y="148.228659" transform="rotate(-0 264.573137 148.228659)">n = 1e+07</text>
    </g>
    <g id="line2d_27">
     <path d="M 54.221489 163.873715 
-L 121.672038 157.463879 
-L 256.573137 152.339365 
+L 121.672038 149.476393 
+L 256.573137 133.804615 
 " clip-path="url(#pb2502d9fd7)" style="fill: none; stroke: #eb6834; stroke-width: 2; stroke-linecap: square"/>
     <defs>
      <path id="mecc8dfacef" d="M 0 4 
@@ -299,12 +299,12 @@ z
     </defs>
     <g clip-path="url(#pb2502d9fd7)">
      <use xlink:href="#mecc8dfacef" x="54.221489" y="163.873715" style="fill: #eb6834; stroke: #fcfcfb; stroke-width: 2"/>
-     <use xlink:href="#mecc8dfacef" x="121.672038" y="157.463879" style="fill: #eb6834; stroke: #fcfcfb; stroke-width: 2"/>
-     <use xlink:href="#mecc8dfacef" x="256.573137" y="152.339365" style="fill: #eb6834; stroke: #fcfcfb; stroke-width: 2"/>
+     <use xlink:href="#mecc8dfacef" x="121.672038" y="149.476393" style="fill: #eb6834; stroke: #fcfcfb; stroke-width: 2"/>
+     <use xlink:href="#mecc8dfacef" x="256.573137" y="133.804615" style="fill: #eb6834; stroke: #fcfcfb; stroke-width: 2"/>
     </g>
    </g>
    <g id="text_16">
-    <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #52514e" x="264.573137" y="154.677255" transform="rotate(-0 264.573137 154.677255)">n = 1e+08</text>
+    <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #52514e" x="264.573137" y="136.142506" transform="rotate(-0 264.573137 136.142506)">n = 1e+08</text>
    </g>
    <g id="text_17">
     <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #0b0b0b" x="44.103906" y="14.798437" transform="rotate(-0 44.103906 14.798437)">Squares with NumPy + Gatherv</text>
