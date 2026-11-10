@@ -15,20 +15,20 @@ Every configuration does exactly the same work as the sequential run, with the s
 ## Result (n = 1e7 per function)
 
 <!-- table: t01 -->
-| Configuration | Workers p | Time (s), mean ± sd of 5 | Speedup | Efficiency S/p |
-|---|---|---|---|---|
-| sequential | 1 | 9.54 ± 0.24 | 1.00x | 1.00 |
-| threads_1_per_function | 2 | 10.11 ± 0.34 | 0.94x | 0.47 |
-| processes_1_per_function | 2 | 4.86 ± 0.12 | 1.96x | 0.98 |
-| threads_2_per_function | 4 | 10.38 ± 0.53 | 0.92x | 0.23 |
-| processes_2_per_function | 4 | 2.54 ± 0.11 | 3.76x | 0.94 |
+| Configuration | Workers p | Median time (s) of 5 | Mean ± sd (s) | Speedup (medians) | Efficiency S/p |
+|---|---|---|---|---|---|
+| sequential | 1 | 6.11 | 6.07 ± 0.09 | 1.00x | 1.00 |
+| threads_1_per_function | 2 | 6.55 | 6.55 ± 0.09 | 0.93x | 0.47 |
+| processes_1_per_function | 2 | 3.35 | 3.34 ± 0.21 | 1.82x | 0.91 |
+| threads_2_per_function | 4 | 6.46 | 6.50 ± 0.10 | 0.95x | 0.24 |
+| processes_2_per_function | 4 | 1.58 | 1.61 ± 0.08 | 3.86x | 0.97 |
 <!-- /table -->
 
 ![Speedup per configuration](../figures/01_threads_vs_processes.svg)
 
 ## What it shows: the GIL
 
-Threads made this work slower, not faster: 0.94x<!-- claim: 01_threads_vs_processes/threads_vs_processes_n10000000.json | rows[config=threads_1_per_function].speedup | {:.2f}x --> with 2 threads and 0.92x<!-- claim: 01_threads_vs_processes/threads_vs_processes_n10000000.json | rows[config=threads_2_per_function].speedup | {:.2f}x --> with 4. Both loops are pure Python, and CPython's global interpreter lock (GIL) lets only one thread run Python bytecode at a time, so the threads take turns on one core and pay for the switching. Processes each have their own interpreter and their own GIL, so they really run in parallel: 1.96x<!-- claim: 01_threads_vs_processes/threads_vs_processes_n10000000.json | rows[config=processes_1_per_function].speedup | {:.2f}x --> with 2 processes and 3.76x<!-- claim: 01_threads_vs_processes/threads_vs_processes_n10000000.json | rows[config=processes_2_per_function].speedup | {:.2f}x --> with 4 on this 4-core machine (efficiency 0.94<!-- claim: 01_threads_vs_processes/threads_vs_processes_n10000000.json | rows[config=processes_2_per_function].efficiency | {:.2f} -->).
+Threads made this work slower, not faster: 0.93x<!-- claim: 01_threads_vs_processes/threads_vs_processes_n10000000.json | rows[config=threads_1_per_function].speedup | {:.2f}x --> with 2 threads and 0.95x<!-- claim: 01_threads_vs_processes/threads_vs_processes_n10000000.json | rows[config=threads_2_per_function].speedup | {:.2f}x --> with 4. Both loops are pure Python, and CPython's global interpreter lock (GIL) lets only one thread run Python bytecode at a time, so the threads take turns on one core and pay for the switching. Processes each have their own interpreter and their own GIL, so they really run in parallel: 1.82x<!-- claim: 01_threads_vs_processes/threads_vs_processes_n10000000.json | rows[config=processes_1_per_function].speedup | {:.2f}x --> with 2 processes and 3.86x<!-- claim: 01_threads_vs_processes/threads_vs_processes_n10000000.json | rows[config=processes_2_per_function].speedup | {:.2f}x --> with 4 on this 4-core machine (efficiency 0.97<!-- claim: 01_threads_vs_processes/threads_vs_processes_n10000000.json | rows[config=processes_2_per_function].efficiency | {:.2f} -->).
 
 Rule I take from this: for CPU-bound pure-Python code, threads do not help; use processes (or move the loop into a library that releases the GIL, see 02 and 06). Python 3.13 has an optional free-threaded build without the GIL; I did not test it here.
 

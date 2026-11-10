@@ -61,66 +61,66 @@ Applied in this order to the columns the summaries need (pickup and dropoff time
 ### Stage 1: downloads (I/O-bound)
 
 <!-- table: t06_stage1 -->
-| Threads | Time for 12 files (s), mean ± sd of 3 | Speedup | Throughput (MB/s) | Short transfers retried |
-|---|---|---|---|---|
-| 1 | 12.80 ± 2.72 | 1.00x | 65 | 1 |
-| 4 | 3.61 ± 0.28 | 3.54x | 230 | 3 |
-| 8 | 3.95 ± 1.06 | 3.24x | 210 | 5 |
+| Threads | Median time for 12 files (s) of 3 | Mean ± sd (s) | Speedup (medians) | Throughput (MB/s) | Short transfers retried |
+|---|---|---|---|---|---|
+| 1 | 42.77 | 42.63 ± 9.84 | 1.00x | 19 | 0 |
+| 4 | 11.53 | 11.61 ± 0.39 | 3.71x | 72 | 0 |
+| 8 | 6.30 | 6.52 ± 0.59 | 6.79x | 132 | 0 |
 <!-- /table -->
 
-Threads help a lot here: 3.54x<!-- claim: 06_nyc_taxi_pipeline/stage1_download.json | rows[workers=4].speedup_vs_first | {:.2f}x --> with 4 threads. A thread waiting for the network releases the GIL, and one connection did not use the whole available bandwidth, so several connections in parallel moved about three and a half times as much data per second. 8 threads were no better than 4 (3.24x<!-- claim: 06_nyc_taxi_pipeline/stage1_download.json | rows[workers=8].speedup_vs_first | {:.2f}x -->): with only 12 files the last few downloads decide the total, and the link or the server probably became the limit (I did not measure which). Some transfers ended early without an error; the downloader compares every file with its `Content-Length`, retries short ones, and the table counts the retries (they are included in the times).
+Threads help a lot here: 3.71x<!-- claim: 06_nyc_taxi_pipeline/stage1_download.json | rows[workers=4].speedup_vs_first | {:.2f}x --> with 4 threads. A thread waiting for the network releases the GIL, and one connection did not use the whole available bandwidth, so several connections in parallel moved about three and a half times as much data per second. 8 threads were no better than 4 (6.79x<!-- claim: 06_nyc_taxi_pipeline/stage1_download.json | rows[workers=8].speedup_vs_first | {:.2f}x -->): with only 12 files the last few downloads decide the total, and the link or the server probably became the limit (I did not measure which). Some transfers ended early without an error; the downloader compares every file with its `Content-Length`, retries short ones, and the table counts the retries (they are included in the times).
 
 ### Stage 2: clean and summarise (CPU-bound)
 
 <!-- table: t06_stage2 -->
-| Method | Workers | Time (s), mean ± sd of 3 | Speedup | Efficiency | Identical summaries |
-|---|---|---|---|---|---|
-| sequential | 1 | 9.16 ± 0.74 | 1.00x | 1.00 | yes |
-| threads | 1 | 9.01 ± 0.57 | 1.02x | 1.02 | yes |
-| threads | 2 | 5.47 ± 0.75 | 1.67x | 0.84 | yes |
-| threads | 4 | 4.09 ± 0.72 | 2.24x | 0.56 | yes |
-| processes | 1 | 9.80 ± 0.67 | 0.94x | 0.94 | yes |
-| processes | 2 | 6.21 ± 1.18 | 1.47x | 0.74 | yes |
-| processes | 4 | 4.72 ± 1.15 | 1.94x | 0.49 | yes |
+| Method | Workers | Median time (s) of 3 | Mean ± sd (s) | Speedup (medians) | Efficiency | Identical summaries |
+|---|---|---|---|---|---|---|
+| sequential | 1 | 5.95 | 5.94 ± 0.05 | 1.00x | 1.00 | yes |
+| threads | 1 | 6.03 | 6.05 ± 0.02 | 0.99x | 0.99 | yes |
+| threads | 2 | 3.75 | 3.75 ± 0.07 | 1.59x | 0.79 | yes |
+| threads | 4 | 2.78 | 2.81 ± 0.06 | 2.14x | 0.54 | yes |
+| processes | 1 | 6.55 | 6.60 ± 0.14 | 0.91x | 0.91 | yes |
+| processes | 2 | 3.80 | 3.79 ± 0.04 | 1.57x | 0.78 | yes |
+| processes | 4 | 2.64 | 2.60 ± 0.17 | 2.26x | 0.56 | yes |
 <!-- /table -->
 
-**Threads helped here, and slightly more than processes** (default settings): 2.24x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | rows[method=threads,workers=4].speedup | {:.2f}x --> with 4 threads against 1.94x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | rows[method=processes,workers=4].speedup | {:.2f}x --> with 4 processes. That looks like it breaks the rule from 01, but most of this work does not run as Python bytecode: PyArrow decodes Parquet in C++ and pandas does the comparisons, date arithmetic and group counts in compiled code, and both release the GIL while they do it. The Python part is only the glue between those calls.
+**Threads helped here, and slightly more than processes** (default settings): 2.14x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | rows[method=threads,workers=4].speedup | {:.2f}x --> with 4 threads against 2.26x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | rows[method=processes,workers=4].speedup | {:.2f}x --> with 4 processes. That looks like it breaks the rule from 01, but most of this work does not run as Python bytecode: PyArrow decodes Parquet in C++ and pandas does the comparisons, date arithmetic and group counts in compiled code, and both release the GIL while they do it. The Python part is only the glue between those calls.
 
 There is a second effect I checked instead of guessing. PyArrow has its own thread pool, so even the "sequential" run already uses several cores while it decodes a file. I ran stage 2 again with Arrow limited to one thread (`OMP_NUM_THREADS=1`, results in `stage2_cpu_arrow_1_thread.json`):
 
 <!-- table: t06_stage2_arrow1 -->
-| Method | Workers | Time (s), mean ± sd of 3 | Speedup | Efficiency | Identical summaries |
-|---|---|---|---|---|---|
-| sequential | 1 | 11.80 ± 2.13 | 1.00x | 1.00 | yes |
-| threads | 1 | 11.96 ± 1.09 | 0.99x | 0.99 | yes |
-| threads | 2 | 7.72 ± 0.28 | 1.53x | 0.76 | yes |
-| threads | 4 | 6.37 ± 0.61 | 1.85x | 0.46 | yes |
-| processes | 1 | 11.23 ± 0.63 | 1.05x | 1.05 | yes |
-| processes | 2 | 7.84 ± 1.20 | 1.51x | 0.75 | yes |
-| processes | 4 | 4.42 ± 0.51 | 2.67x | 0.67 | yes |
+| Method | Workers | Median time (s) of 3 | Mean ± sd (s) | Speedup (medians) | Efficiency | Identical summaries |
+|---|---|---|---|---|---|---|
+| sequential | 1 | 8.50 | 8.43 ± 0.17 | 1.00x | 1.00 | yes |
+| threads | 1 | 8.16 | 8.15 ± 0.01 | 1.04x | 1.04 | yes |
+| threads | 2 | 5.45 | 5.56 ± 0.25 | 1.56x | 0.78 | yes |
+| threads | 4 | 4.43 | 4.39 ± 0.07 | 1.92x | 0.48 | yes |
+| processes | 1 | 8.49 | 8.50 ± 0.04 | 1.00x | 1.00 | yes |
+| processes | 2 | 4.31 | 4.32 ± 0.05 | 1.97x | 0.99 | yes |
+| processes | 4 | 2.37 | 2.35 ± 0.06 | 3.59x | 0.90 | yes |
 <!-- /table -->
 
-With one Arrow thread the sequential run got slower (11.80 s<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu_arrow_1_thread.json | rows[method=sequential,workers=1].mean_s | {:.2f} s --> instead of 9.16 s<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | rows[method=sequential,workers=1].mean_s | {:.2f} s -->), threads gained less (1.85x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu_arrow_1_thread.json | rows[method=threads,workers=4].speedup | {:.2f}x -->) and processes gained more (2.67x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu_arrow_1_thread.json | rows[method=processes,workers=4].speedup | {:.2f}x -->). So in the default run, 4 processes each started their own Arrow threads on a 4-core machine and competed for the same cores, and part of the "parallelism" was already inside the library. My conclusion: for pandas/PyArrow work, try threads first because they are cheap and the libraries release the GIL; processes win when the Python part is larger or when the library's own threading is turned off; and check what the library already does before adding workers on top of it.
+With one Arrow thread the sequential run got slower (8.43 s<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu_arrow_1_thread.json | rows[method=sequential,workers=1].mean_s | {:.2f} s --> instead of 5.94 s<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | rows[method=sequential,workers=1].mean_s | {:.2f} s -->), threads gained less (1.92x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu_arrow_1_thread.json | rows[method=threads,workers=4].speedup | {:.2f}x -->) and processes gained more (3.59x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu_arrow_1_thread.json | rows[method=processes,workers=4].speedup | {:.2f}x -->). So in the default run, 4 processes each started their own Arrow threads on a 4-core machine and competed for the same cores, and part of the "parallelism" was already inside the library. My conclusion: for pandas/PyArrow work, try threads first because they are cheap and the libraries release the GIL; processes win when the Python part is larger or when the library's own threading is turned off; and check what the library already does before adding workers on top of it.
 
 ### Stage 3: MPI on one machine
 
 <!-- table: t06_stage3 -->
 | Ranks | Binding | Median time (s) of 3 | Mean ± sd (s) | Speedup vs 1 rank | Speedup vs sequential | Efficiency | Wall time incl. start-up (s) | Identical summaries |
 |---|---|---|---|---|---|---|---|---|
-| 1 | Open MPI default | 9.69 | 10.58 ± 1.58 | 1.00x | 0.92x | 1.00 | 11.45 | yes |
-| 2 | Open MPI default | 5.94 | 6.08 ± 1.30 | 1.63x | 1.51x | 0.82 | 6.90 | yes |
-| 4 | Open MPI default | 3.53 | 4.03 ± 0.90 | 2.75x | 2.53x | 0.69 | 5.11 | yes |
-| 1 | `--bind-to none` (extra run) | 7.20 | 7.23 ± 0.75 | 1.35x | 1.24x | 1.35 | 8.08 | yes |
+| 1 | Open MPI default | 8.11 | 8.14 ± 0.07 | 1.00x | 0.77x | 1.00 | 8.94 | yes |
+| 2 | Open MPI default | 4.36 | 4.39 ± 0.12 | 1.86x | 1.42x | 0.93 | 5.20 | yes |
+| 4 | Open MPI default | 2.38 | 2.37 ± 0.03 | 3.41x | 2.61x | 0.85 | 3.38 | yes |
+| 1 | `--bind-to none` (extra run) | 6.09 | 6.11 ± 0.13 | 1.33x | 1.02x | 1.33 | 6.94 | yes |
 <!-- /table -->
 
-MPI with 4 ranks reached 2.75x<!-- claim: 06_nyc_taxi_pipeline/stage3_mpi.json | rows[ranks=4].speedup_vs_1_rank | {:.2f}x --> over 1 rank (4.03 s<!-- claim: 06_nyc_taxi_pipeline/stage3_mpi.json | rows[ranks=4].mean_s | {:.2f} s -->), about the same wall time as 4 threads in stage 2 (4.09 s<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | rows[method=threads,workers=4].mean_s | {:.2f} s -->). The 1-rank run itself took 10.58 s<!-- claim: 06_nyc_taxi_pipeline/stage3_mpi.json | rows[ranks=1].mean_s | {:.2f} s -->, slower than stage 2's sequential run. My explanation, which the stage 2 control run above supports: Open MPI binds each rank to one core by default, so a single rank cannot use PyArrow's extra threads the way the sequential Python run can. That makes MPI's speedup look better than its absolute time. Starting the ranks added about one second each time (the "wall time incl. start-up" column). All three rank counts produced summaries identical to the sequential run. On one machine MPI bought nothing over a thread pool; it would matter with more months than one machine can hold or process in time.
+MPI with 4 ranks reached 3.41x<!-- claim: 06_nyc_taxi_pipeline/stage3_mpi.json | rows[ranks=4].speedup_vs_1_rank | {:.2f}x --> over 1 rank (2.37 s<!-- claim: 06_nyc_taxi_pipeline/stage3_mpi.json | rows[ranks=4].mean_s | {:.2f} s -->), about the same wall time as 4 threads in stage 2 (2.81 s<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | rows[method=threads,workers=4].mean_s | {:.2f} s -->). The 1-rank run itself took 8.14 s<!-- claim: 06_nyc_taxi_pipeline/stage3_mpi.json | rows[ranks=1].mean_s | {:.2f} s -->, slower than stage 2's sequential run. My explanation, which the stage 2 control run above supports: Open MPI binds each rank to one core by default, so a single rank cannot use PyArrow's extra threads the way the sequential Python run can. That makes MPI's speedup look better than its absolute time. Starting the ranks added about one second each time (the "wall time incl. start-up" column). All three rank counts produced summaries identical to the sequential run. On one machine MPI bought nothing over a thread pool; it would matter with more months than one machine can hold or process in time.
 
 ![Speedup by stage](../figures/06_speedup_by_stage.svg)
 
 ### Stage 4: SQL answers for 2025
 
 <!-- table: t06_sql -->
-| Question | Answer (2025) | SQL file |
+| Question | Answer (TLC data for 2025) | SQL file |
 |---|---|---|
 | 1. Busiest hour of day | 18:00 to 18:59, 2,944,122 trips | `q1_busiest_hour.sql` |
 | 2. Average fare by month | lowest 2025-01 $17.92, highest 2025-12 $22.46 | `q2_average_fare_by_month.sql` |

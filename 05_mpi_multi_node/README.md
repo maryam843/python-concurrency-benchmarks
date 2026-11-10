@@ -25,12 +25,12 @@ Gather everything at rank 0 (`Gatherv`):
 <!-- table: t05_gatherv -->
 | n | Ranks | Median time (s) of 10 | Mean ± sd (s) | Speedup vs 1 rank (medians) | Efficiency | Peak memory rank 0 (MB) |
 |---|---|---|---|---|---|---|
-| 1e+07 | 1 | 0.543 | 0.553 ± 0.060 | 1.00x | 1.00 | 194 |
-| 1e+07 | 2 | 0.344 | 0.353 ± 0.083 | 1.58x | 0.79 | 156 |
-| 1e+07 | 4 | 0.221 | 0.241 ± 0.076 | 2.45x | 0.61 | 137 |
-| 1e+08 | 1 | 1.935 | 1.941 ± 0.532 | 1.00x | 1.00 | 1567 |
-| 1e+08 | 2 | 1.696 | 1.717 ± 0.510 | 1.14x | 0.57 | 1186 |
-| 1e+08 | 4 | 1.543 | 1.521 ± 0.415 | 1.25x | 0.31 | 995 |
+| 1e+07 | 1 | 0.064 | 0.066 ± 0.007 | 1.00x | 1.00 | 200 |
+| 1e+07 | 2 | 0.047 | 0.050 ± 0.011 | 1.37x | 0.69 | 162 |
+| 1e+07 | 4 | 0.046 | 0.046 ± 0.005 | 1.40x | 0.35 | 143 |
+| 1e+08 | 1 | 0.746 | 0.748 ± 0.049 | 1.00x | 1.00 | 1573 |
+| 1e+08 | 2 | 0.567 | 0.567 ± 0.026 | 1.32x | 0.66 | 1192 |
+| 1e+08 | 4 | 0.449 | 0.465 ± 0.049 | 1.66x | 0.42 | 1001 |
 <!-- /table -->
 
 Reduce only (`--no-gather`):
@@ -38,19 +38,19 @@ Reduce only (`--no-gather`):
 <!-- table: t05_reduce -->
 | n | Ranks | Median time (s) of 10 | Mean ± sd (s) | Speedup vs 1 rank (medians) | Efficiency | Peak memory rank 0 (MB) |
 |---|---|---|---|---|---|---|
-| 1e+07 | 1 | 0.193 | 0.196 ± 0.065 | 1.00x | 1.00 | 118 |
-| 1e+07 | 2 | 0.018 | 0.031 ± 0.025 | 10.54x | 5.27 | 79 |
-| 1e+07 | 4 | 0.011 | 0.013 ± 0.004 | 17.27x | 4.32 | 61 |
-| 1e+08 | 1 | 1.665 | 1.749 ± 0.549 | 1.00x | 1.00 | 804 |
-| 1e+08 | 2 | 0.794 | 0.779 ± 0.088 | 2.10x | 1.05 | 423 |
-| 1e+08 | 4 | 0.508 | 0.530 ± 0.127 | 3.28x | 0.82 | 232 |
+| 1e+07 | 1 | 0.040 | 0.042 ± 0.009 | 1.00x | 1.00 | 123 |
+| 1e+07 | 2 | 0.019 | 0.020 ± 0.002 | 2.07x | 1.04 | 86 |
+| 1e+07 | 4 | 0.011 | 0.012 ± 0.003 | 3.54x | 0.88 | 67 |
+| 1e+08 | 1 | 0.427 | 0.421 ± 0.019 | 1.00x | 1.00 | 810 |
+| 1e+08 | 2 | 0.223 | 0.226 ± 0.014 | 1.91x | 0.96 | 429 |
+| 1e+08 | 4 | 0.114 | 0.114 ± 0.011 | 3.75x | 0.94 | 238 |
 <!-- /table -->
 
 ![MPI scaling](../figures/05_mpi_scaling.svg)
 
-**The reliable win is memory.** I measured the 2025 script in this session with only n changed (`tools/measure_2025_mpi.py`): at n = 1e7 its rank 0 peaked at 2969 MB<!-- claim: 05_mpi_multi_node/earlier_calculate_squares.json | rows[n=10000000,ranks=1].peak_rss_mb_rank0 | {:.0f} MB --> with 1 rank and the run took 49.3 s<!-- claim: 05_mpi_multi_node/earlier_calculate_squares.json | rows[n=10000000,ranks=1].wall_s_incl_startup | {:.1f} s -->. Memory grows linearly with n, so 1e8 would need roughly ten times that, about 30 GB, which this 15 GB machine does not have; I did not run it. The 2026 version handles n = 1e8 with 1567 MB<!-- claim: 05_mpi_multi_node/mpi_squares_scaling_gatherv.json | rows[n=100000000,ranks=1].peak_rss_mb_rank0_max | {:.0f} MB --> on rank 0 when it gathers everything (the 800 MB result plus its own 800 MB piece), and with 232 MB<!-- claim: 05_mpi_multi_node/mpi_squares_scaling_reduce_only.json | rows[n=100000000,ranks=4].peak_rss_mb_rank0_max | {:.0f} MB --> per rank in reduce-only mode with 4 ranks.
+**The reliable win is memory.** I measured the 2025 script in this session with only n changed (`tools/measure_2025_mpi.py`): at n = 1e7 its rank 0 peaked at 2969 MB<!-- claim: 05_mpi_multi_node/earlier_calculate_squares.json | rows[n=10000000,ranks=1].peak_rss_mb_rank0 | {:.0f} MB --> with 1 rank and the run took 49.3 s<!-- claim: 05_mpi_multi_node/earlier_calculate_squares.json | rows[n=10000000,ranks=1].wall_s_incl_startup | {:.1f} s -->. Memory grows linearly with n, so 1e8 would need roughly ten times that, about 30 GB, which this 15 GB machine does not have; I did not run it. The 2026 version handles n = 1e8 with 1573 MB<!-- claim: 05_mpi_multi_node/mpi_squares_scaling_gatherv.json | rows[n=100000000,ranks=1].peak_rss_mb_rank0_max | {:.0f} MB --> on rank 0 when it gathers everything (the 800 MB result plus its own 800 MB piece), and with 238 MB<!-- claim: 05_mpi_multi_node/mpi_squares_scaling_reduce_only.json | rows[n=100000000,ranks=4].peak_rss_mb_rank0_max | {:.0f} MB --> per rank in reduce-only mode with 4 ranks.
 
-**The speedups are small and noisy, and I do not read much into them.** Squaring is one multiplication per 8 bytes of memory, so the run time is mostly allocating and touching memory, not computing; each timed run is well under 2 seconds and the standard deviations are as large as some means, even with 10 runs. Where the work is not dominated by one big allocation it scales: reduce-only at n = 1e7 went from 0.196 s<!-- claim: 05_mpi_multi_node/mpi_squares_scaling_reduce_only.json | rows[n=10000000,ranks=1].mean_s | {:.3f} s --> on 1 rank to 17.27x<!-- claim: 05_mpi_multi_node/mpi_squares_scaling_reduce_only.json | rows[n=10000000,ranks=4].speedup_vs_1_rank | {:.2f}x --> on 4. With `Gatherv` all squares still have to be copied into one 800 MB array on rank 0, which is a single-machine memory copy that more ranks cannot speed up: 4 ranks were slower than 2 at n = 1e8 (1.25x<!-- claim: 05_mpi_multi_node/mpi_squares_scaling_gatherv.json | rows[n=100000000,ranks=4].speedup_vs_1_rank | {:.2f}x --> vs 1.14x<!-- claim: 05_mpi_multi_node/mpi_squares_scaling_gatherv.json | rows[n=100000000,ranks=2].speedup_vs_1_rank | {:.2f}x -->). On one machine, MPI is the wrong tool for a job this light; it is the tool for when the data or the work does not fit on one machine, which is what the 2025 two-VM run was about.
+**The speedups are small and noisy, and I do not read much into them.** Squaring is one multiplication per 8 bytes of memory, so the run time is mostly allocating and touching memory, not computing; each timed run is well under 2 seconds and the standard deviations are as large as some means, even with 10 runs. Where the work is not dominated by one big allocation it scales: reduce-only at n = 1e7 went from 0.042 s<!-- claim: 05_mpi_multi_node/mpi_squares_scaling_reduce_only.json | rows[n=10000000,ranks=1].mean_s | {:.3f} s --> on 1 rank to 3.54x<!-- claim: 05_mpi_multi_node/mpi_squares_scaling_reduce_only.json | rows[n=10000000,ranks=4].speedup_vs_1_rank | {:.2f}x --> on 4. With `Gatherv` all squares still have to be copied into one 800 MB array on rank 0, which is a single-machine memory copy that more ranks cannot speed up: 4 ranks were slower than 2 at n = 1e8 (1.66x<!-- claim: 05_mpi_multi_node/mpi_squares_scaling_gatherv.json | rows[n=100000000,ranks=4].speedup_vs_1_rank | {:.2f}x --> vs 1.32x<!-- claim: 05_mpi_multi_node/mpi_squares_scaling_gatherv.json | rows[n=100000000,ranks=2].speedup_vs_1_rank | {:.2f}x -->). On one machine, MPI is the wrong tool for a job this light; it is the tool for when the data or the work does not fit on one machine, which is what the 2025 two-VM run was about.
 
 ## How to run
 

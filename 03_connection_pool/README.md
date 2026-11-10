@@ -25,29 +25,29 @@ Two parts:
 <!-- table: t03_semaphore -->
 | Processes | Pool size | Got a connection | Max holders at once | Exit codes | Total time (s) |
 |---|---|---|---|---|---|
-| 8 | 2 | 8 | 2 | 0, 0, 0, 0, 0, 0, 0, 0 | 6.34 |
+| 8 | 2 | 8 | 2 | 0, 0, 0, 0, 0, 0, 0, 0 | 6.33 |
 <!-- /table -->
 
 Pool benchmarks (4 workers):
 
 <!-- table: t03_pool -->
-| n | Method | Runs | Time (s), mean ± sd | Speedup vs sequential |
-|---|---|---|---|---|
-| 1e+05 | sequential | 3 | 0.0065 ± 0.0006 | 1.000x |
-| 1e+05 | pool_map | 3 | 0.0272 ± 0.0046 | 0.238x |
-| 1e+05 | apply_async_per_item | 3 | 11.5268 ± 0.7177 | 0.001x |
-| 1e+05 | apply_async_chunked | 3 | 0.0470 ± 0.0045 | 0.138x |
-| 1e+05 | process_pool_executor_chunksize | 3 | 0.0641 ± 0.0018 | 0.101x |
-| 1e+06 | sequential | 3 | 0.0719 ± 0.0047 | 1.000x |
-| 1e+06 | pool_map | 3 | 0.1815 ± 0.0071 | 0.396x |
-| 1e+06 | apply_async_per_item | 1 | 123.3911 ± 0.0000 | 0.001x |
-| 1e+06 | apply_async_chunked | 3 | 0.3539 ± 0.0153 | 0.203x |
-| 1e+06 | process_pool_executor_chunksize | 3 | 0.5843 ± 0.0416 | 0.123x |
+| n | Method | Timed runs | Median time (s) | Mean ± sd (s) | Speedup vs sequential (medians) |
+|---|---|---|---|---|---|
+| 1e+05 | sequential | 3 | 0.0066 | 0.0069 ± 0.0014 | 1.000x |
+| 1e+05 | pool_map | 3 | 0.0221 | 0.0219 ± 0.0007 | 0.299x |
+| 1e+05 | apply_async_per_item | 3 | 8.0928 | 8.0978 ± 0.1452 | 0.001x |
+| 1e+05 | apply_async_chunked | 3 | 0.0409 | 0.0427 ± 0.0041 | 0.162x |
+| 1e+05 | process_pool_executor_chunksize | 3 | 0.0543 | 0.0556 ± 0.0024 | 0.122x |
+| 1e+06 | sequential | 3 | 0.0542 | 0.0565 ± 0.0062 | 1.000x |
+| 1e+06 | pool_map | 3 | 0.1541 | 0.1569 ± 0.0076 | 0.352x |
+| 1e+06 | apply_async_per_item | 1 | 77.3418 | 77.3418 ± 0.0000 | 0.001x |
+| 1e+06 | apply_async_chunked | 3 | 0.2580 | 0.2562 ± 0.0234 | 0.210x |
+| 1e+06 | process_pool_executor_chunksize | 3 | 0.3936 | 0.3924 ± 0.0435 | 0.138x |
 <!-- /table -->
 
 The pool fix works: 8<!-- claim: 03_connection_pool/connection_pool_run.json | acquired | {} --> of 8 processes got a connection, and the most holding one at the same time was 2<!-- claim: 03_connection_pool/connection_pool_run.json | max_concurrent_holders | {} -->.
 
-For the squares, **every parallel version was slower than the plain loop**, at both sizes. At n = 1e6 the sequential list comprehension took 0.0719 s<!-- claim: 03_connection_pool/pool_squares.json | rows[n=1000000,method=sequential].mean_s | {:.4f} s -->; `Pool.map` ran at 0.396x<!-- claim: 03_connection_pool/pool_squares.json | rows[n=1000000,method=pool_map].speedup | {:.3f}x -->, chunked `apply_async` at 0.203x<!-- claim: 03_connection_pool/pool_squares.json | rows[n=1000000,method=apply_async_chunked].speedup | {:.3f}x -->, `ProcessPoolExecutor` at 0.123x<!-- claim: 03_connection_pool/pool_squares.json | rows[n=1000000,method=process_pool_executor_chunksize].speedup | {:.3f}x -->, and `apply_async` with one task per number took 123.3911 s<!-- claim: 03_connection_pool/pool_squares.json | rows[n=1000000,method=apply_async_per_item].mean_s | {:.4f} s --> (one run). Squaring an int costs tens of nanoseconds; sending it to another process means pickling it, writing it to a pipe, unpickling it, and doing the same for the answer, which costs far more than the multiplication. Starting the pool costs more again. The chunk size is what separates slow from absurd: per-item tasks pay that overhead a million times. The lesson for real work: processes pay off only when each task carries much more computation than data (compare 02, where each process gets one big range and sends back one number).
+For the squares, **every parallel version was slower than the plain loop**, at both sizes. At n = 1e6 the sequential list comprehension took 0.0565 s<!-- claim: 03_connection_pool/pool_squares.json | rows[n=1000000,method=sequential].mean_s | {:.4f} s -->; `Pool.map` ran at 0.352x<!-- claim: 03_connection_pool/pool_squares.json | rows[n=1000000,method=pool_map].speedup | {:.3f}x -->, chunked `apply_async` at 0.210x<!-- claim: 03_connection_pool/pool_squares.json | rows[n=1000000,method=apply_async_chunked].speedup | {:.3f}x -->, `ProcessPoolExecutor` at 0.138x<!-- claim: 03_connection_pool/pool_squares.json | rows[n=1000000,method=process_pool_executor_chunksize].speedup | {:.3f}x -->, and `apply_async` with one task per number took 77.3418 s<!-- claim: 03_connection_pool/pool_squares.json | rows[n=1000000,method=apply_async_per_item].mean_s | {:.4f} s --> (one run). Squaring an int costs tens of nanoseconds; sending it to another process means pickling it, writing it to a pipe, unpickling it, and doing the same for the answer, which costs far more than the multiplication. Starting the pool costs more again. The chunk size is what separates slow from absurd: per-item tasks pay that overhead a million times. The lesson for real work: processes pay off only when each task carries much more computation than data (compare 02, where each process gets one big range and sends back one number).
 
 `apply_async` with one task per item is not run at n = 1e7. At 1e6 it already creates a million tasks, a million result objects and two million pickled messages, and took about two minutes; at 1e7 all ten million result objects would be pending at once. The time grows with the number of tasks, so I stopped at 1e6 instead of risking the machine's memory.
 
