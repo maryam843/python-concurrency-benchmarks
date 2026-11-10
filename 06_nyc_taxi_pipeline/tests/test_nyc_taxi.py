@@ -165,6 +165,24 @@ def test_stage2_main_and_bad_method(tmp_path, monkeypatch):
         stage2_cpu.run_method("gpu", PATHS)
 
 
+def test_stage2_warms_up_each_config_and_uses_medians(monkeypatch):
+    calls = []
+    real = stage2_cpu.run_method
+
+    def counting(method, paths, workers=1, start_method=None):
+        calls.append((method, workers))
+        return real(method, paths, workers, start_method)
+
+    monkeypatch.setattr(stage2_cpu, "run_method", counting)
+    res = stage2_cpu.run(PATHS, [2], repeats=2)
+    assert calls == [("sequential", 1)] * 3 + [("threads", 2)] * 3 + [("processes", 2)] * 3  # 1 warm-up + 2 timed
+    seq = res["rows"][0]
+    assert res["speedup_from"] == "median"
+    for r in res["rows"]:
+        assert len(r["runs_s"]) == 2
+        assert r["speedup"] == pytest.approx(seq["median_s"] / r["median_s"])
+
+
 def test_stage2_detects_different_summaries(monkeypatch):
     real = stage2_cpu.run_method
 
@@ -229,6 +247,21 @@ def test_short_transfer_is_detected_and_retried(tmp_path):
             download.download_file(f"http://127.0.0.1:{srv.server_address[1]}/x", tmp_path / "y", attempts=1)
     finally:
         srv.shutdown()
+
+
+def test_stage1_warms_up_each_setting_and_uses_medians(monkeypatch):
+    times = iter([99.0, 4.0, 2.0, 6.0, 99.0, 1.0, 3.0, 2.0])  # per setting: warm-up first, then 3 timed runs
+    calls = []
+
+    def fake(months, workers, url_for=None, tmp_root=None):
+        calls.append(workers)
+        return next(times), {"a.parquet": "same"}, 100, 0
+
+    monkeypatch.setattr(stage1_io, "time_downloads", fake)
+    res = stage1_io.run(MONTHS, [1, 4], repeats=3)
+    assert calls == [1] * 4 + [4] * 4
+    assert [r["runs_s"] for r in res["rows"]] == [[4.0, 2.0, 6.0], [1.0, 3.0, 2.0]]  # warm-ups dropped
+    assert res["rows"][1]["speedup_vs_first"] == pytest.approx(4.0 / 2.0)  # medians, not means
 
 
 def test_stage1_from_disk():

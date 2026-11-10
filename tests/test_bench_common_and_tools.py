@@ -6,7 +6,16 @@ from pathlib import Path
 
 import pytest
 
-from bench_common import TimingStats, efficiency, first_run_outlier, machine_info, speedup, time_repeats, write_result
+from bench_common import (
+    TimingStats,
+    efficiency,
+    first_run_outlier,
+    machine_info,
+    speedup,
+    time_repeats,
+    time_with_warmup,
+    write_result,
+)
 
 REPO = Path(__file__).resolve().parents[1]
 
@@ -44,6 +53,13 @@ def test_time_repeats_and_errors():
         speedup(1.0, 0.0)
     with pytest.raises(ValueError):
         efficiency(1.0, 1.0, 0)
+
+
+def test_time_with_warmup_runs_once_before_timing():
+    calls = []
+    stats, value = time_with_warmup(lambda: calls.append(1) or len(calls), 3)
+    assert len(calls) == 4 and len(stats.runs) == 3  # 1 untimed warm-up + 3 timed runs
+    assert value == 4  # the value comes from the last timed run
 
 
 def test_machine_info_has_no_hostname_or_paths():

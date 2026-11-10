@@ -79,6 +79,25 @@ def test_benchmark_rows_and_efficiency_use_real_p(tmp_path, monkeypatch):
     assert "| sequential | 1 |" in bm.format_table(res)
 
 
+def test_benchmark_warms_up_each_config_and_uses_medians(monkeypatch):
+    calls = {}
+    real = bm.run_config
+
+    def counting(cfg, tasks, start_method=None):
+        calls[cfg.name] = calls.get(cfg.name, 0) + 1
+        return real(cfg, tasks, start_method)
+
+    monkeypatch.setattr(bm, "run_config", counting)
+    res = bm.benchmark(500, 3, seed=1)
+    assert calls == {c.name: 1 + 3 for c in bm.CONFIGS}  # one untimed warm-up + 3 timed runs each
+    seq = res["rows"][0]
+    assert res["speedup_from"] == "median"
+    for r in res["rows"]:
+        assert len(r["runs_s"]) == 3
+        assert r["speedup"] == pytest.approx(seq["median_s"] / r["median_s"])
+        assert r["speedup_of_means"] == pytest.approx(seq["mean_s"] / r["mean_s"])
+
+
 def test_benchmark_detects_wrong_result(monkeypatch):
     real = bm.run_config
 

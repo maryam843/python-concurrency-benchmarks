@@ -1,4 +1,7 @@
-"""Stage 1 (I/O-bound): download the year sequentially vs with 4 and 8 threads, 3 runs each.
+"""Stage 1 (I/O-bound): download the year sequentially vs with 4 and 8 threads.
+
+Each setting downloads once untimed (DNS, connections and caches on the way warm up), then `repeats`
+timed runs; speedups use the medians.
 
     python -m nyc_taxi.stage1_io --workers 1 4 8 --repeats 3
     python -m nyc_taxi.stage1_io --from-disk        # if the files are already cached: time reading them instead
@@ -19,7 +22,7 @@ from pathlib import Path
 
 import pyarrow.parquet as pq
 
-from bench_common import write_result
+from bench_common import first_run_outlier, write_result
 from nyc_taxi.config import DATA_DIR, MONTHS, file_name
 from nyc_taxi.download import download_months
 
@@ -55,7 +58,7 @@ def run(months, workers_list, repeats, from_disk=False, data_dir=DATA_DIR, url_f
     rows, reference = [], None
     for w in workers_list:
         times, retries = [], 0
-        for _ in range(repeats):
+        for i in range(repeats + 1):  # run 0 is the untimed warm-up
             if from_disk:
                 t, n = time_disk_reads(months, w, data_dir)
                 check = n
@@ -67,17 +70,20 @@ def run(months, workers_list, repeats, from_disk=False, data_dir=DATA_DIR, url_f
             elif check != reference:
                 bad = sorted(k for k in check if check[k] != reference.get(k)) if isinstance(check, dict) else check
                 raise AssertionError(f"workers={w}: files differ from the first run: {bad}")
-            times.append(t)
-        rows.append({"workers": w, "runs_s": times, "mean_s": statistics.fmean(times), "retried_files": retries,
+            if i > 0:
+                times.append(t)
+        rows.append({"workers": w, "runs_s": times, "median_s": statistics.median(times),
+                     "mean_s": statistics.fmean(times), "retried_files": retries,
                      "sd_s": statistics.stdev(times) if len(times) > 1 else 0.0,
-                     ("rows" if from_disk else "bytes"): n})
-    base = rows[0]["mean_s"]
+                     "first_run_outlier": first_run_outlier(times), ("rows" if from_disk else "bytes"): n})
+    base, base_mean = rows[0]["median_s"], rows[0]["mean_s"]
     for r in rows:
-        r["speedup_vs_first"] = base / r["mean_s"]
+        r["speedup_vs_first"] = base / r["median_s"]
+        r["speedup_of_means"] = base_mean / r["mean_s"]
         if not from_disk:
-            r["throughput_mb_s"] = r["bytes"] / r["mean_s"] / 1e6
+            r["throughput_mb_s"] = r["bytes"] / r["median_s"] / 1e6
     return {"mode": "read_from_disk" if from_disk else "download", "months": months, "repeats": repeats,
-            "rows": rows}
+            "warmup": "one untimed run per setting", "speedup_from": "median", "rows": rows}
 
 
 def main(argv=None) -> dict:
@@ -92,7 +98,7 @@ def main(argv=None) -> dict:
     res = run(args.months, args.workers, args.repeats, args.from_disk, args.data_dir)
     for r in res["rows"]:
         extra = f"  {r['throughput_mb_s']:.1f} MB/s" if "throughput_mb_s" in r else ""
-        print(f"workers={r['workers']}  mean={r['mean_s']:.2f}s  sd={r['sd_s']:.2f}  "
+        print(f"workers={r['workers']}  median={r['median_s']:.2f}s  mean={r['mean_s']:.2f}s  sd={r['sd_s']:.2f}  "
               f"speedup={r['speedup_vs_first']:.2f}{extra}")
     if not args.no_save:
         write_result(f"stage1_{res['mode']}", res, seed=None, subdir="06_nyc_taxi_pipeline")

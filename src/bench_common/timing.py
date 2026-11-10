@@ -1,7 +1,11 @@
 """Timing helpers: repeat a callable, report mean, median and sample standard deviation.
 
-A first run more than OUTLIER_FACTOR times slower than the median is flagged as an outlier
-(information only, never a failure): it usually means a cold start such as fresh memory pages.
+Every benchmark uses the same method: one untimed warm-up run, then several timed runs, and the
+speedup is computed from the medians. The warm-up pays for one-off costs (imports, first-touch memory,
+a cold disk or network cache); the median is not pulled by one slow run, which a mean of 3 to 5 runs is.
+
+A first timed run more than OUTLIER_FACTOR times slower than the median is flagged as an outlier
+(information only, never a failure): it usually means a cold start the warm-up did not cover.
 """
 
 from __future__ import annotations
@@ -61,6 +65,13 @@ def time_repeats(fn: Callable[[], Any], repeats: int) -> tuple[TimingStats, Any]
         result = fn()
         runs.append(time.perf_counter() - t0)
     return TimingStats(tuple(runs)), result
+
+
+def time_with_warmup(fn: Callable[[], Any], repeats: int, warmups: int = 1) -> tuple[TimingStats, Any]:
+    """Call fn `warmups` times without timing it, then time `repeats` runs (see the module docstring)."""
+    for _ in range(warmups):
+        fn()
+    return time_repeats(fn, repeats)
 
 
 def speedup(t_sequential: float, t_parallel: float) -> float:

@@ -2,6 +2,9 @@
 
     python -m connection_pool.benchmark --sizes 1e5 1e6 --repeats 3
 
+Each method runs once untimed at each size, then `repeats` timed runs (`slow_repeats` for apply_async
+with one task per item at n >= 1e6); speedups use the medians.
+
 apply_async with one task per item is not run above n = 1e6: every item becomes its own task,
 AsyncResult object and pair of pickled messages. At 1e6 that already takes about two minutes on a
 4-core machine, and at 1e7 ten million AsyncResult objects would be pending at once.
@@ -12,7 +15,7 @@ from __future__ import annotations
 import argparse
 import multiprocessing as mp
 
-from bench_common import speedup, time_repeats, write_result
+from bench_common import OUTLIER_FACTOR, speedup, time_with_warmup, write_result
 from connection_pool.square import (
     concurrent_futures,
     default_workers,
@@ -41,29 +44,37 @@ def benchmark(sizes: list[int], workers: int, repeats: int, slow_repeats: int,
     for n in sizes:
         numbers = list(range(n))
         expected = [x * x for x in numbers]
-        t_seq = None
+        t_seq = t_seq_mean = None
         for name, fn in methods(workers, start_method).items():
             if name == "apply_async_per_item" and n > APPLY_ASYNC_PER_ITEM_MAX_N:
                 skipped.append({"n": n, "method": name, "reason": "one task per item does not scale; see docstring"})
                 continue
             reps = slow_repeats if name == "apply_async_per_item" and n >= 10**6 else repeats
-            stats, out = time_repeats(lambda fn=fn, numbers=numbers: fn(numbers), reps)
+            stats, out = time_with_warmup(lambda fn=fn, numbers=numbers: fn(numbers), reps)
             if out != expected:
                 raise AssertionError(f"{name} returned wrong squares for n={n}")
             if name == "sequential":
-                t_seq = stats.mean
+                t_seq, t_seq_mean = stats.median, stats.mean
             assert t_seq is not None
+            if stats.first_run_outlier:
+                print(f"info: {name} at n={n:.0e}: first timed run {stats.runs[0]:.4f} s is more than "
+                      f"{OUTLIER_FACTOR:g}x the median {stats.median:.4f} s")
             rows.append({"n": n, "method": name, "workers": 1 if name == "sequential" else workers,
-                         "repeats": reps, "mean_s": stats.mean, "sd_s": stats.sd, "runs_s": list(stats.runs),
-                         "speedup": speedup(t_seq, stats.mean), "correct": True})
-    return {"sizes": sizes, "workers": workers, "start_method": start_method or mp.get_start_method(),
+                         "repeats": reps, "median_s": stats.median, "mean_s": stats.mean, "sd_s": stats.sd,
+                         "runs_s": list(stats.runs), "first_run_outlier": stats.first_run_outlier,
+                         "speedup": speedup(t_seq, stats.median), "speedup_of_means": speedup(t_seq_mean, stats.mean),
+                         "correct": True})
+    return {"sizes": sizes, "workers": workers, "warmup": "one untimed run per method and size",
+            "speedup_from": "median", "start_method": start_method or mp.get_start_method(),
             "rows": rows, "skipped": skipped}
 
 
 def format_table(res: dict) -> str:
-    lines = ["| n | Method | Runs | Mean (s) | SD (s) | Speedup vs sequential |", "|---|---|---|---|---|---|"]
+    lines = ["| n | Method | Runs | Median (s) | Mean (s) | SD (s) | Speedup vs sequential |",
+             "|---|---|---|---|---|---|---|"]
     for r in res["rows"]:
-        lines.append(f"| {r['n']:.0e} | {r['method']} | {r['repeats']} | {r['mean_s']:.4f} | {r['sd_s']:.4f} "
+        lines.append(f"| {r['n']:.0e} | {r['method']} | {r['repeats']} | {r['median_s']:.4f} | {r['mean_s']:.4f} "
+                     f"| {r['sd_s']:.4f} "
                      f"| {r['speedup']:.3f} |")
     return "\n".join(lines)
 

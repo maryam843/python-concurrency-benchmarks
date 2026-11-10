@@ -1,8 +1,9 @@
-"""Sequential vs threads vs processes on the Lab 2 workloads.
+"""Sequential vs threads vs processes on two pure-Python loops.
 
 Every configuration does exactly the same total work as the sequential run: n iterations of the
 numbers workload plus n iterations of the letters workload. "2 per function" splits each workload
-into two halves, so it uses 4 workers in total.
+into two halves, so it uses 4 workers in total. Each configuration runs once untimed, then `repeats`
+timed runs; speedups use the medians (means and every run are saved too).
 
     python -m threads_vs_processes.benchmark --n 10000000 --repeats 5
 """
@@ -14,7 +15,7 @@ import multiprocessing as mp
 from concurrent.futures import Executor, ProcessPoolExecutor, ThreadPoolExecutor
 from dataclasses import dataclass
 
-from bench_common import efficiency, speedup, time_repeats, write_result
+from bench_common import OUTLIER_FACTOR, efficiency, speedup, time_with_warmup, write_result
 from threads_vs_processes.workloads import run_task
 
 Task = tuple[str, int, int]
@@ -78,46 +79,53 @@ def run_config(cfg: Config, tasks: list[Task], start_method: str | None = None) 
 def benchmark(n: int, repeats: int, seed: int, start_method: str | None = None) -> dict:
     rows = []
     expected: dict[int, tuple[int, str]] = {}
-    t_seq = None
+    t_seq = t_seq_mean = None
     for cfg in CONFIGS:
         tasks = make_tasks(n, cfg.per_function, seed)
         def run(cfg=cfg, tasks=tasks):
             return run_config(cfg, tasks, start_method)
 
-        stats, result = time_repeats(run, repeats)
+        stats, result = time_with_warmup(run, repeats)
         if cfg.per_function not in expected:
             # same task list, run sequentially (untimed when it is not the baseline itself)
             expected[cfg.per_function] = result if cfg.kind == "sequential" else run_sequential(tasks)
         if result != expected[cfg.per_function]:
             raise AssertionError(f"{cfg.name} returned a different result from the sequential run")
         if cfg.kind == "sequential":
-            t_seq = stats.mean
+            t_seq, t_seq_mean = stats.median, stats.mean
         assert t_seq is not None
-        s = speedup(t_seq, stats.mean)
+        if stats.first_run_outlier:
+            print(f"info: {cfg.name}: first timed run {stats.runs[0]:.3f} s is more than "
+                  f"{OUTLIER_FACTOR:g}x the median {stats.median:.3f} s")
         rows.append({
             "config": cfg.name,
             "workers": cfg.workers,
+            "median_s": stats.median,
             "mean_s": stats.mean,
             "sd_s": stats.sd,
             "runs_s": list(stats.runs),
-            "speedup": s,
-            "efficiency": efficiency(t_seq, stats.mean, cfg.workers),
+            "first_run_outlier": stats.first_run_outlier,
+            "speedup": speedup(t_seq, stats.median),
+            "speedup_of_means": speedup(t_seq_mean, stats.mean),
+            "efficiency": efficiency(t_seq, stats.median, cfg.workers),
             "result_matches_sequential": True,
         })
-    return {"n": n, "repeats": repeats, "start_method": start_method or mp.get_start_method(), "rows": rows}
+    return {"n": n, "repeats": repeats, "warmup": "one untimed run per configuration", "speedup_from": "median",
+            "start_method": start_method or mp.get_start_method(), "rows": rows}
 
 
 def format_table(res: dict) -> str:
-    lines = ["| Config | Workers p | Mean (s) | SD (s) | Speedup | Efficiency |", "|---|---|---|---|---|---|"]
+    lines = ["| Config | Workers p | Median (s) | Mean (s) | SD (s) | Speedup | Efficiency |",
+             "|---|---|---|---|---|---|---|"]
     for r in res["rows"]:
-        lines.append(f"| {r['config']} | {r['workers']} | {r['mean_s']:.3f} | {r['sd_s']:.3f} "
+        lines.append(f"| {r['config']} | {r['workers']} | {r['median_s']:.3f} | {r['mean_s']:.3f} | {r['sd_s']:.3f} "
                      f"| {r['speedup']:.2f} | {r['efficiency']:.2f} |")
     return "\n".join(lines)
 
 
 def main(argv: list[str] | None = None) -> dict:
     ap = argparse.ArgumentParser(description="Threads vs processes on CPU-bound pure-Python work")
-    ap.add_argument("--n", type=int, default=10_000_000, help="iterations per workload (2025 lab: 1e7)")
+    ap.add_argument("--n", type=int, default=10_000_000, help="iterations per workload")
     ap.add_argument("--repeats", type=int, default=5)
     ap.add_argument("--seed", type=int, default=2025)
     ap.add_argument("--start-method", choices=["fork", "spawn", "forkserver"], default=None)

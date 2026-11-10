@@ -102,6 +102,27 @@ def test_benchmark_small(monkeypatch, tmp_path):
     assert "apply_async_per_item" in bm.format_table(res)
 
 
+def test_benchmark_warms_up_each_method_and_uses_medians(monkeypatch):
+    calls = {}
+    real = bm.methods
+
+    def counting(w, s):
+        def wrap(name, fn):
+            def run(xs):
+                calls[name] = calls.get(name, 0) + 1
+                return fn(xs)
+            return run
+        return {name: wrap(name, fn) for name, fn in real(w, s).items()}
+
+    monkeypatch.setattr(bm, "methods", counting)
+    res = bm.benchmark([300], 2, 3, 1)
+    assert calls == {name: 1 + 3 for name in real(2, None)}  # one untimed warm-up + 3 timed runs each
+    seq = res["rows"][0]
+    for r in res["rows"]:
+        assert len(r["runs_s"]) == 3
+        assert r["speedup"] == pytest.approx(seq["median_s"] / r["median_s"])
+
+
 def test_benchmark_skips_apply_async_per_item_above_1e6(monkeypatch):
     monkeypatch.setattr(bm, "APPLY_ASYNC_PER_ITEM_MAX_N", 100)
     res = bm.benchmark([200], 2, 1, 1)
