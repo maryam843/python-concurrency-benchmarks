@@ -147,6 +147,14 @@ def test_regression_plain_numbers():
     check_prints_plain_numbers(mpirun(2, FOLDER / "calculate_squares.py", 10).stdout)
 
 
+def test_mpi_env_allows_more_ranks_than_cores_on_open_mpi_4_and_5(monkeypatch):
+    for name in ("OMPI_MCA_rmaps_base_oversubscribe", "PRTE_MCA_rmaps_default_mapping_policy"):
+        monkeypatch.delenv(name, raising=False)
+    env = scaling.mpi_env()
+    assert env["OMPI_MCA_rmaps_base_oversubscribe"] == "1"  # Open MPI 4
+    assert env["PRTE_MCA_rmaps_default_mapping_policy"] == ":oversubscribe"  # Open MPI 5 (PRRTE)
+
+
 def test_mpi_env_allows_root_only_when_asked(monkeypatch):
     for name in ("OMPI_ALLOW_RUN_AS_ROOT", "OMPI_ALLOW_RUN_AS_ROOT_CONFIRM", "PCB_ALLOW_ROOT"):
         monkeypatch.delenv(name, raising=False)

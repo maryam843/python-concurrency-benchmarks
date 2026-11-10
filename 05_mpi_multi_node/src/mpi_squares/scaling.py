@@ -31,8 +31,10 @@ def root_needs_permission() -> bool:
 
 def mpi_env() -> dict:
     env = dict(os.environ)
-    # allow more ranks than cores on small CI runners
+    # allow more ranks than cores on small CI runners: Open MPI 4 reads the first variable,
+    # Open MPI 5 maps processes in PRRTE and reads only the second
     env.setdefault("OMPI_MCA_rmaps_base_oversubscribe", "1")
+    env.setdefault("PRTE_MCA_rmaps_default_mapping_policy", ":oversubscribe")
     # running as root (containers, Colab) only when asked for with PCB_ALLOW_ROOT=1
     if os.environ.get("PCB_ALLOW_ROOT") == "1":
         env.setdefault("OMPI_ALLOW_RUN_AS_ROOT", "1")
