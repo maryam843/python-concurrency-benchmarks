@@ -15,9 +15,10 @@ def _table(header: list[str], rows: list[list[str]]) -> str:
 
 def t01(load):
     d = load("01_threads_vs_processes/threads_vs_processes_n10000000.json")
-    return _table(["Configuration", "Workers p", "Time (s), mean ± sd of 5", "Speedup", "Efficiency S/p"],
-                  [[r["config"], str(r["workers"]), _ms(r, nd=2), f"{r['speedup']:.2f}x", f"{r['efficiency']:.2f}"]
-                   for r in d["rows"]])
+    return _table(["Configuration", "Workers p", f"Median time (s) of {d['repeats']}", "Mean ± sd (s)",
+                   "Speedup (medians)", "Efficiency S/p"],
+                  [[r["config"], str(r["workers"]), f"{r['median_s']:.2f}", _ms(r, nd=2), f"{r['speedup']:.2f}x",
+                    f"{r['efficiency']:.2f}"] for r in d["rows"]])
 
 
 def t02(load):
@@ -31,10 +32,11 @@ def t02(load):
 
 def t03_pool(load):
     d = load("03_connection_pool/pool_squares.json")
-    rows = [[f"{r['n']:.0e}", r["method"], str(r["repeats"]), _ms(r, nd=4), f"{r['speedup']:.3f}x"]
-            for r in d["rows"]]
-    rows += [[f"{s['n']:.0e}", s["method"], "0", "not run", "-"] for s in d["skipped"]]
-    return _table(["n", "Method", "Runs", "Time (s), mean ± sd", "Speedup vs sequential"], rows)
+    rows = [[f"{r['n']:.0e}", r["method"], str(r["repeats"]), f"{r['median_s']:.4f}", _ms(r, nd=4),
+             f"{r['speedup']:.3f}x"] for r in d["rows"]]
+    rows += [[f"{s['n']:.0e}", s["method"], "0", "not run", "-", "-"] for s in d["skipped"]]
+    return _table(["n", "Method", "Timed runs", "Median time (s)", "Mean ± sd (s)", "Speedup vs sequential (medians)"],
+                  rows)
 
 
 def t03_semaphore(load):
@@ -72,17 +74,18 @@ def t05_reduce(load):
 
 def t06_stage1(load):
     d = load("06_nyc_taxi_pipeline/stage1_download.json")
-    return _table(["Threads", "Time for 12 files (s), mean ± sd of 3", "Speedup", "Throughput (MB/s)",
-                   "Short transfers retried"],
-                  [[str(r["workers"]), _ms(r, nd=2), f"{r['speedup_vs_first']:.2f}x", f"{r['throughput_mb_s']:.0f}",
-                    str(r["retried_files"])] for r in d["rows"]])
+    return _table(["Threads", f"Median time for 12 files (s) of {d['repeats']}", "Mean ± sd (s)",
+                   "Speedup (medians)", "Throughput (MB/s)", "Short transfers retried"],
+                  [[str(r["workers"]), f"{r['median_s']:.2f}", _ms(r, nd=2), f"{r['speedup_vs_first']:.2f}x",
+                    f"{r['throughput_mb_s']:.0f}", str(r["retried_files"])] for r in d["rows"]])
 
 
 def t06_stage2(load, name="stage2_cpu"):
     d = load(f"06_nyc_taxi_pipeline/{name}.json")
-    return _table(["Method", "Workers", "Time (s), mean ± sd of 3", "Speedup", "Efficiency", "Identical summaries"],
-                  [[r["method"], str(r["workers"]), _ms(r, nd=2), f"{r['speedup']:.2f}x", f"{r['efficiency']:.2f}",
-                    "yes" if r["identical_to_sequential"] else "NO"] for r in d["rows"]])
+    return _table(["Method", "Workers", f"Median time (s) of {d['repeats']}", "Mean ± sd (s)", "Speedup (medians)",
+                   "Efficiency", "Identical summaries"],
+                  [[r["method"], str(r["workers"]), f"{r['median_s']:.2f}", _ms(r, nd=2), f"{r['speedup']:.2f}x",
+                    f"{r['efficiency']:.2f}", "yes" if r["identical_to_sequential"] else "NO"] for r in d["rows"]])
 
 
 def t06_stage2_arrow1(load):
@@ -137,7 +140,7 @@ def t06_sql(load):
         ["5. Share of trips cleaned out", f"{s_lo['share_removed']:.1%} ({s_lo['month']}) to "
          f"{s_hi['share_removed']:.1%} ({s_hi['month']})", "`q5_share_cleaned_out.sql`"],
     ]
-    return _table(["Question", "Answer (2025)", "SQL file"], rows)
+    return _table(["Question", "Answer (TLC data for 2025)", "SQL file"], rows)
 
 
 def t06_top10(load):
