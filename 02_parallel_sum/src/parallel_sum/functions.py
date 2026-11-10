@@ -1,4 +1,4 @@
-"""Sequential sum of 1..n (from my L3-P1 code)."""
+"""Sequential sum of 1..n."""
 
 import time
 

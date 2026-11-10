@@ -1,6 +1,6 @@
 """Execute every notebook in the repo headless; outputs are not written back.
 
-    python tools/run_notebooks.py              # lab size (N = 1e7 in the Lab 2 notebook)
+    python tools/run_notebooks.py              # full size (N = 1e7 in the threads-vs-processes notebook)
     PCB_NOTEBOOK_N=200000 python tools/run_notebooks.py   # quick run (CI)
 """
 

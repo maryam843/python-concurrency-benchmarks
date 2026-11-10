@@ -168,6 +168,6 @@ def check_every_process_gets_a_connection(acquired_count, num_processes=8):
     assert acquired_count == num_processes
 
 
-def test_regression_semaphore_passes_on_2026_code():
+def test_regression_semaphore():
     s = run_connection_pool(8, 2, work_s=(0.05, 0.1), seed=0)
     check_every_process_gets_a_connection(s["acquired"])

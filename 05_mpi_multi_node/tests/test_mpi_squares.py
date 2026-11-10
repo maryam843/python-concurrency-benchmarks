@@ -124,7 +124,7 @@ def test_scaling_cli_needs_five_repeats():
         scaling.main(["--repeats", "3", "--no-save"])
 
 
-# ---------- regression: each check guards a bug the 2025 code had ----------
+# ---------- regression: each check guards a bug the earlier version had ----------
 def check_runs_with_one_rank(script: Path):
     proc = mpirun(1, script)
     errors = [line for line in proc.stderr.splitlines() if "Error" in line or "Exception" in line]
@@ -133,7 +133,7 @@ def check_runs_with_one_rank(script: Path):
 
 @needs_mpi
 @pytest.mark.mpi
-def test_regression_one_rank_passes_on_2026_code():
+def test_regression_one_rank():
     check_runs_with_one_rank(FOLDER / "mpi_program.py")
 
 
@@ -143,7 +143,7 @@ def check_prints_plain_numbers(stdout: str):
 
 @needs_mpi
 @pytest.mark.mpi
-def test_regression_plain_numbers_on_2026_code():
+def test_regression_plain_numbers():
     check_prints_plain_numbers(mpirun(2, FOLDER / "calculate_squares.py", 10).stdout)
 
 

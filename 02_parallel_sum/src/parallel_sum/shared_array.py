@@ -1,6 +1,6 @@
-"""Process sum with a shared multiprocessing.Array (from my L3-P2 script).
+"""Process sum with a shared multiprocessing.Array.
 
-2025 bug: the array used typecode 'i' (signed 32-bit). Each partial sum above 2**31 - 1 wrapped
+Earlier bug: the array used typecode 'i' (signed 32-bit). Each partial sum above 2**31 - 1 wrapped
 around, so n = 10**6 returned 1,784,293,664 instead of 500,000,500,000. The fix is typecode 'q'
 (signed 64-bit), which holds partial sums up to about 9.2e18, i.e. n up to about 4.29e9.
 """

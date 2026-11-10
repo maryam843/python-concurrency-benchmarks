@@ -1,4 +1,4 @@
-"""Thread sum (from my L3-P1 code). The worker is module level, like the other versions."""
+"""Thread sum. The worker is module level, like the other versions."""
 
 import threading
 import time

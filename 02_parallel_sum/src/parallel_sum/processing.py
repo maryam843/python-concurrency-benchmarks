@@ -1,6 +1,6 @@
-"""Process sum with a result Queue (from my L3-P1 code).
+"""Process sum with a result Queue.
 
-2025 bug: `worker` was defined inside calculate_sum_multiprocessing. A nested function cannot be
+Earlier bug: `worker` was defined inside calculate_sum_multiprocessing. A nested function cannot be
 pickled, so under the "spawn" start method (the default on Windows and macOS) it failed with
 "Can't pickle local object". The worker now lives at module level.
 """

@@ -26,7 +26,7 @@ class TestConnectionPool(unittest.TestCase):
         self.assertIsNone(self.pool.get_connection(timeout=0.1))
 
     def test_release_connection(self):
-        # 2025 version asserted the same connection comes back, but the queue is FIFO and hands
+        # the earlier version asserted the same connection comes back, but the queue is FIFO and hands
         # out the other free connection first. What matters is that the released one is usable again.
         conn = self.pool.get_connection()
         self.pool.release_connection(conn)

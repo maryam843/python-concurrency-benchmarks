@@ -10,7 +10,7 @@ Two ways a README may state a result:
    The text right before the marker must equal FORMAT applied to that value.
 
 Any other speedup (1.23x), time in seconds (1.2 s) or percentage (12 %) outside a table or claim
-is an error, unless its line ends with `<!-- 2025 evidence -->` (a saved 2025 output cited by path
+is an error, unless its line ends with `<!-- earlier evidence -->` (a saved earlier output cited by path
 in the same sentence).
 
     python tools/check_readme_claims.py            # check
@@ -32,7 +32,7 @@ sys.path.insert(0, str(REPO / "tools"))
 CLAIM_RE = re.compile(r"<!-- claim: (?P<file>[^|]+?) \| (?P<sel>[^|]+?) \| (?P<fmt>.+?) -->")
 TABLE_RE = re.compile(r"(<!-- table: (?P<name>[\w.-]+) -->\n)(?P<body>.*?)(<!-- /table -->)", re.S)
 UNCLAIMED_RE = re.compile(r"(?<![\w.])\d+(?:\.\d+)?(?:x\b| ?s\b| ?%)")
-EXEMPT_TAG = "<!-- 2025 evidence -->"
+EXEMPT_TAG = "<!-- earlier evidence -->"
 
 
 def select(doc, selector: str):

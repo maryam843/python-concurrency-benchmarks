@@ -1,7 +1,7 @@
-"""Console display (Lab 4, 2025; fixed in 2026).
+"""Console display.
 
-2025: update_display() called os.system('clear') every 5 s (the brief said not to erase the
-console, and 'clear' does not exist in Windows cmd) and looped over range(3) instead of the real
+Earlier version: update_display() called os.system('clear') every 5 s (the console must not be
+erased, and 'clear' does not exist in Windows cmd) and looped over range(3) instead of the real
 number of sensors. Now the block of lines is printed once and then rewritten in place: the cursor
 moves up with the ANSI sequence ESC[<n>A and each line is cleared with ESC[2K before it is redrawn.
 Values are read under the lock, and the thread wakes when the processor signals the Condition.

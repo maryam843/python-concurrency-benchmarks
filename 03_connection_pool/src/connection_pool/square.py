@@ -1,6 +1,6 @@
-"""Squares of a list of numbers, computed five ways (A1-P1).
+"""Squares of a list of numbers, computed five ways.
 
-The per-call timing that 2025 wrote into a CSV is gone; benchmark.py times these from outside.
+The per-call timing that the earlier version wrote into a CSV is gone; benchmark.py times these from outside.
 """
 
 import concurrent.futures
@@ -32,7 +32,7 @@ def pool_map(numbers: list, workers: int | None = None, start_method: str | None
         return pool.map(square, numbers)
 
 
-# In 2025 multiprocessing_squares() had exactly the same body as pool_map(); kept as an alias.
+# In the earlier version multiprocessing_squares() had exactly the same body as pool_map(); kept as an alias.
 multiprocessing_squares = pool_map
 
 

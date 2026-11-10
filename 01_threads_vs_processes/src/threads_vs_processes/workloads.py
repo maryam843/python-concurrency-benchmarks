@@ -1,4 +1,4 @@
-"""The two CPU-bound workloads from my 2025 Lab 2 notebook, now seeded so results can be checked.
+"""Two CPU-bound workloads (also used in the notebook), seeded so results can be checked.
 
 Both are pure-Python loops, so they hold the GIL the whole time.
 """

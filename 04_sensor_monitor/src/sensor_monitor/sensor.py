@@ -1,13 +1,13 @@
-"""Sensor threads and the processing thread (Lab 4, 2025; fixed in 2026).
+"""Sensor threads and the processing thread.
 
-2025 bugs fixed here:
+Earlier bugs fixed here:
 - Averages: temperature_averages held a list of readings and was then overwritten with a float, so the
   processor thread crashed on each sensor's second reading ("'float' object has no attribute
   'append'"). Readings now live in sensor_readings; temperature_averages only holds floats.
 - Queue growth: the processor took one item and then slept 5 s while sensors added 3 items per second, so
   the queue grew without bound. It now drains the whole queue every interval and then updates
   the averages.
-- The Condition the lab asked for existed only as a comment. `condition` now tells the display
+- The Condition variable existed only as a comment. `condition` now tells the display
   thread that new averages are ready.
 """
 
@@ -48,7 +48,7 @@ def reset_state():
 
 
 def random_source(seed=None) -> Iterator[float]:
-    """Random mode from 2025: integer temperatures between 15 and 40 degrees C."""
+    """Random mode: integer temperatures between 15 and 40 degrees C."""
     rng = random.Random(seed)
     while True:
         yield rng.randint(15, 40)

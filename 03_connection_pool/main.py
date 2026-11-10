@@ -1,4 +1,4 @@
-"""A1-P1 demo: 8 processes share a pool of 2 database connections guarded by a semaphore.
+"""Connection pool demo: 8 processes share a pool of 2 database connections guarded by a semaphore.
 
     python 03_connection_pool/main.py            # prints a summary, writes outputs/ (git-ignored)
     python 03_connection_pool/main.py --save     # writes results/03_connection_pool/ (used by tools/run_benchmarks.py)

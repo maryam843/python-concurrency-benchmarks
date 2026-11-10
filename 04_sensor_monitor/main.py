@@ -4,7 +4,7 @@
     python 04_sensor_monitor/main.py --mode data --duration 30
     python 04_sensor_monitor/main.py --mode data --headless --duration 12 --save
 
-2025 bugs fixed here: imports failed from the repo root (ModuleNotFoundError: sensor) and
+Earlier bugs fixed here: imports failed from the repo root (ModuleNotFoundError: sensor) and
 `time` was never imported (NameError after 1 s).
 """
 
@@ -38,8 +38,8 @@ def main(argv=None):
         summary = sensor.run_monitor(num_sensors, args.duration or 12, args.sensor_interval,
                                      args.process_interval, sources)
         summary["mode"] = args.mode
-        brief = {k: v for k, v in summary.items() if k != "readings"}
-        print(json.dumps(brief, indent=2))
+        shown = {k: v for k, v in summary.items() if k != "readings"}
+        print(json.dumps(shown, indent=2))
         if args.save:
             write_result(f"sensor_monitor_{args.mode}", summary, seed=None, subdir="04_sensor_monitor")
         return summary

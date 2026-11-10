@@ -1,6 +1,6 @@
 """A database connection pool shared by processes, guarded by a semaphore.
 
-2025 bug: the pool had no semaphore (my README said it did). get_connection() returned None when
+Earlier bug: the pool had no semaphore (its README said it did). get_connection() returned None when
 the queue was empty, so with 8 processes and 2 connections, 6 processes printed "Waiting..." and
 gave up: only 2 of 8 ever got a connection.
 

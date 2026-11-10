@@ -1,6 +1,6 @@
 """Small file helpers for the connection pool demo.
 
-2025: log_timing() appended to outputs/timing_results.csv on every run, so the file grew with
+Earlier version: log_timing() appended to outputs/timing_results.csv on every run, so the file grew with
 unlabelled duplicate rows (18 -> 34 -> 50). Timings now go to one JSON file per benchmark run
 under results/ (see benchmark.py), and this module only keeps the log helpers.
 """

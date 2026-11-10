@@ -1,7 +1,7 @@
 """Amdahl's and Gustafson's laws.
 
 P is the parallel fraction of the work, N the number of workers.
-2025 bug: main.py computed Gustafson as N - (1 - P) * N, which gives 3.60 for N = 4, P = 0.9.
+Earlier bug: main.py computed Gustafson as N - (1 - P) * N, which gives 3.60 for N = 4, P = 0.9.
 The law is S = N - (1 - P)(N - 1) (equivalently (1 - P) + P * N), which gives 3.70.
 """
 

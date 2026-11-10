@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "python-concurrency-benchmarks"
 version = "1.0.0"
-description = "Measured guide to when threads, processes and MPI help in Python (DSAI3202 coursework, fixed and extended in 2026)"
+description = "Measured guide to when threads, processes and MPI help in Python: five small studies and a real-data pipeline"
 requires-python = ">=3.12"
 license = "MIT"
 authors = [{ name = "Maryam Mahaboob" }]

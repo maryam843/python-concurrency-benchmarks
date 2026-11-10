@@ -39,7 +39,7 @@ SECRET_RES = {
     "slack_token": re.compile(r"\bxox[abprs]-[A-Za-z0-9-]{10,}\b"),
     "sk_prefixed_key": re.compile(r"\bsk-[A-Za-z0-9_-]{20,}\b"),
     "private_key": re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----"),
-    "password_assignment": re.compile(
+    "password_literal": re.compile(
         r"(?i)\b(?:password|passwd|secret|api_key)\s*[:=]\s*['\"][^'\"\s]{6,}['\"]"
     ),
 }

@@ -143,7 +143,7 @@ def test_main_live_display_random_mode(capsys):
     assert "\x1b[6A" in out and "Sensor 2 Average:" in out
 
 
-# ---------- regression tests: each check guards a bug the 2025 code had ----------
+# ---------- regression tests: each check guards a bug the earlier version had ----------
 
 
 def _watch_thread_errors(monkeypatch):
@@ -160,7 +160,7 @@ def check_processor_survives_and_queue_stays_bounded(start, run_s=1.5, bound=40)
     assert q.qsize() <= bound, f"queue grew to {q.qsize()}"
 
 
-def test_regression_processor_and_queue_pass_on_2026_code(monkeypatch):
+def test_regression_processor_and_queue(monkeypatch):
     errors = _watch_thread_errors(monkeypatch)
 
     def start():
@@ -177,7 +177,7 @@ def check_main_starts_from_repo_root(cmd, cwd):
     assert proc.returncode == 0, proc.stderr[-300:]
 
 
-def test_regression_main_imports_pass_on_2026_code():
+def test_regression_main_imports():
     check_main_starts_from_repo_root(
         [sys.executable, "04_sensor_monitor/main.py", "--headless", "--duration", "1",
          "--sensor-interval", "0.05", "--process-interval", "0.2"], REPO)

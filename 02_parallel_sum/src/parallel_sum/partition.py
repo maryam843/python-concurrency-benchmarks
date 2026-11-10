@@ -1,4 +1,4 @@
-"""Split 1..n into contiguous chunks, the same way all my 2025 versions did."""
+"""Split 1..n into contiguous chunks, the same way for every method."""
 
 
 def chunk_bounds(n: int, parts: int) -> list[tuple[int, int]]:

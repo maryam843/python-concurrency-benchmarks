@@ -148,7 +148,7 @@ def test_claims_checker(tmp_path, monkeypatch):
     good = tmp_path / "good.md"
     good.write_text("Speed **4.20x**<!-- claim: x.json | rows[a=1].v | {:.2f}x --> and "
                     "1.5 s<!-- claim: x.json | t | {:.1f} s -->.\n"
-                    "Old 6.79 s from a saved file <!-- 2025 evidence -->\n")
+                    "Old 6.79 s from a saved file <!-- earlier evidence -->\n")
     assert chk.check_file(good) == []
     bad = tmp_path / "bad.md"
     bad.write_text("Speed 4.30x<!-- claim: x.json | rows[a=1].v | {:.2f}x -->. Unbacked 3.3x here.\n"

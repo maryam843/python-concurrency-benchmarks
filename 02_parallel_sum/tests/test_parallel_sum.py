@@ -143,16 +143,16 @@ def test_main_script_prints_correct_sums_and_gustafson():
     assert "Gustafson's Speedup (Process): 3.70" in out
 
 
-# ---------- regression tests: each check guards a bug the 2025 code had ----------
+# ---------- regression tests: each check guards a bug the earlier version had ----------
 
 
 def check_sum_correct_at_1e6(fn):
     assert fn(10**6, 4) == 500_000_500_000
 
 
-def test_regression_int32_overflow_passes_on_2026_code():
+def test_regression_int32_overflow():
     check_sum_correct_at_1e6(parallel_process_sum)
-    # the same code with the 2025 typecode reproduces the bug, so the fix is exactly 'i' -> 'q'
+    # the same code with the earlier typecode reproduces the bug, so the fix is exactly 'i' -> 'q'
     assert parallel_process_sum(10**6, 4, typecode="i") == 1_784_293_664
 
 
@@ -161,7 +161,7 @@ def check_no_stdlib_shadowing(py_paths):
     assert not shadowing, shadowing
 
 
-def test_regression_stdlib_shadowing_passes_on_2026_code():
+def test_regression_stdlib_shadowing():
     files = [str(p.relative_to(REPO)) for p in REPO.rglob("*.py") if ".venv" not in p.parts]
     check_no_stdlib_shadowing(files)
 
@@ -170,7 +170,7 @@ def check_spawn_safe(calc):
     assert calc(1000, 2) == closed_form(1000)
 
 
-def test_regression_nested_worker_passes_under_spawn_on_2026_code():
+def test_regression_nested_worker_under_spawn():
     check_spawn_safe(lambda n, p: calculate_sum_multiprocessing(n, p, "spawn")[0])
 
 
@@ -178,5 +178,5 @@ def check_gustafson(gustafson_n4_p09):
     assert gustafson_n4_p09() == pytest.approx(3.70, abs=0.005)
 
 
-def test_regression_gustafson_passes_on_2026_code():
+def test_regression_gustafson():
     check_gustafson(lambda: gustafson_speedup(0.9, 4))

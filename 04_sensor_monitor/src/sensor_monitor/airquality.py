@@ -1,4 +1,4 @@
-"""Replay real temperature readings from the UCI Air Quality dataset (added in 2026).
+"""Replay real temperature readings from the UCI Air Quality dataset.
 
 Dataset: De Vito, S. (2008). Air Quality [Dataset]. UCI Machine Learning Repository.
 https://doi.org/10.24432/C59K5F, licence CC BY 4.0. Hourly averages from a gas multisensor device

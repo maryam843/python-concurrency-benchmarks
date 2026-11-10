@@ -119,12 +119,12 @@ def test_same_seed_same_results():
     assert a != c
 
 
-# regression: the 2025 notebook divided by np = 4 although only 2 workers ran
+# regression: an earlier version divided by np = 4 although only 2 workers ran
 def check_efficiency_uses_real_p(efficiency_fn):
     """Regression check: 1 process per function = 2 workers, so efficiency must be S/2."""
     t_seq, t_par = 1.8, 1.0
     assert efficiency_fn(t_seq, t_par, 2) == pytest.approx((t_seq / t_par) / 2)
 
 
-def test_regression_efficiency_passes_on_2026_code():
+def test_regression_efficiency_uses_real_p():
     check_efficiency_uses_real_p(efficiency)
