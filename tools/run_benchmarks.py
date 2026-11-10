@@ -8,6 +8,7 @@ Needs the datasets (the script downloads them) and, for 05 and 06 stage 3, an MP
 """
 
 import argparse
+import os
 import subprocess
 import sys
 import time
@@ -29,6 +30,8 @@ STEPS = [
     ("05", "MPI squares scaling, Gatherv", [PY, "-m", "mpi_squares.scaling", "--repeats", "10"]),
     ("05", "MPI squares scaling, reduce only", [PY, "-m", "mpi_squares.scaling", "--no-gather", "--repeats", "10"]),
     ("06", "stage 2: sequential vs threads vs processes", [PY, "-m", "nyc_taxi.stage2_cpu"]),
+    ("06", "stage 2 control: PyArrow limited to one thread",
+     [PY, "-m", "nyc_taxi.stage2_cpu", "--name", "stage2_cpu_arrow_1_thread"], {"OMP_NUM_THREADS": "1"}),
     ("06", "stage 3: MPI 1/2/4 ranks", [PY, "-m", "nyc_taxi.stage3_mpi"]),
     ("06", "stage 4: SQLite questions", [PY, "-m", "nyc_taxi.stage4_sql"]),
     ("06", "figures", [PY, "tools/make_figures.py"]),
@@ -39,12 +42,13 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--only", nargs="+", help="folder numbers to run, e.g. 02 05")
     args = ap.parse_args(argv)
-    for folder, label, cmd in STEPS:
+    for folder, label, cmd, *extra in STEPS:
+        env = {**os.environ, **extra[0]} if extra else None
         if args.only and folder not in args.only:
             continue
         print(f"\n=== [{folder}] {label}\n$ {' '.join(Path(c).name if c == PY else c for c in cmd)}", flush=True)
         t0 = time.perf_counter()
-        subprocess.run(cmd, cwd=REPO, check=True)
+        subprocess.run(cmd, cwd=REPO, check=True, env=env)
         print(f"=== done in {time.perf_counter() - t0:.0f} s", flush=True)
     return 0
 
