@@ -1,8 +1,8 @@
 """Squares of 1..n spread over MPI ranks, with NumPy arrays instead of Python lists.
 
-2025 (course script): every rank built a Python list of NumPy scalars and rank 0 gathered them with
+Earlier version (the supplied script): every rank built a Python list of NumPy scalars and rank 0 gathered them with
 comm.gather (pickled objects). At n = 1e7 rank 0 used about 3 GB
-(results/05_mpi_multi_node/legacy_2025_calculate_squares.json), so n = 1e8 would need about ten times
+(results/05_mpi_multi_node/earlier_calculate_squares.json), so n = 1e8 would need about ten times
 that and does not fit in the 15 GB of the test machine.
 
 Now each rank fills one int64 array (8 bytes per square) and rank 0 receives the pieces straight into
@@ -21,7 +21,7 @@ MAX_N = 3_037_000_499  # largest n whose square fits in int64
 
 
 def chunk_counts(n: int, size: int) -> tuple[list[int], list[int]]:
-    """Counts and start offsets per rank; the first n % size ranks get one extra item (as in the lab script)."""
+    """Counts and start offsets per rank; the first n % size ranks get one extra item (as in the supplied script)."""
     if size < 1:
         raise ValueError("size must be >= 1")
     if not 0 <= n <= MAX_N:
