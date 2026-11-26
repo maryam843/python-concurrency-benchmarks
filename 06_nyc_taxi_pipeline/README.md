@@ -1,13 +1,13 @@
-# 06 NYC taxi pipeline (added in 2026)
+# 06 NYC taxi pipeline
 
-**This folder is new in 2026.** It is not coursework; it applies what the five labs taught to a real, public dataset.
+This folder applies what folders 01 to 05 show to a real, public dataset.
 
 ## What it is
 
 A four-stage pipeline over every NYC yellow taxi trip of 2025 (12 monthly Parquet files from the NYC Taxi and Limousine Commission), built to test the rule of thumb from folders 01 to 05 on real data:
 
-1. **Stage 1 (I/O-bound):** download the 12 files sequentially and with a `ThreadPoolExecutor` of 4 and 8 threads, 3 runs each. Every run downloads into a fresh temporary folder, so nothing is served from a local copy.
-2. **Stage 2 (CPU-bound):** for each month, read the file, apply the cleaning rules and compute summaries; sequential vs threads vs processes with 1, 2 and 4 workers, 3 runs each. All methods must produce identical summaries.
+1. **Stage 1 (I/O-bound):** download the 12 files sequentially and with a `ThreadPoolExecutor` of 4 and 8 threads, one untimed warm-up and then 3 timed runs each. Every run downloads into a fresh temporary folder, so nothing is served from a local copy.
+2. **Stage 2 (CPU-bound):** for each month, read the file, apply the cleaning rules and compute summaries; sequential vs threads vs processes with 1, 2 and 4 workers, one untimed warm-up and then 3 timed runs each. All methods must produce identical summaries.
 3. **Stage 3 (MPI):** the same work with `mpiexec -n 1/2/4`, months dealt round-robin to the ranks, summaries gathered at rank 0. Checked against the sequential result.
 4. **Stage 4 (SQL):** the monthly summaries go into SQLite (Python `sqlite3`), and five questions are answered by the SQL files in `sql/`.
 
@@ -56,7 +56,7 @@ Applied in this order to the columns the summaries need (pickup and dropoff time
 | **kept** | 43,688,597 | 89.67% |
 <!-- /table -->
 
-## Results (4-core machine, 3 runs each)
+## Results (4-core machine, one untimed warm-up, then 3 timed runs each)
 
 ### Stage 1: downloads (I/O-bound)
 
@@ -68,7 +68,7 @@ Applied in this order to the columns the summaries need (pickup and dropoff time
 | 8 | 6.30 | 6.52 ± 0.59 | 6.79x | 132 | 0 |
 <!-- /table -->
 
-Threads help a lot here: 3.71x<!-- claim: 06_nyc_taxi_pipeline/stage1_download.json | rows[workers=4].speedup_vs_first | {:.2f}x --> with 4 threads. A thread waiting for the network releases the GIL, and one connection did not use the whole available bandwidth, so several connections in parallel moved about three and a half times as much data per second. 8 threads were no better than 4 (6.79x<!-- claim: 06_nyc_taxi_pipeline/stage1_download.json | rows[workers=8].speedup_vs_first | {:.2f}x -->): with only 12 files the last few downloads decide the total, and the link or the server probably became the limit (I did not measure which). Some transfers ended early without an error; the downloader compares every file with its `Content-Length`, retries short ones, and the table counts the retries (they are included in the times).
+Threads help a lot here: 3.71x<!-- claim: 06_nyc_taxi_pipeline/stage1_download.json | rows[workers=4].speedup_vs_first | {:.2f}x --> with 4 threads. A thread waiting for the network releases the GIL, and one connection did not use the whole available bandwidth, so several connections in parallel moved several times as much data per second. 8 threads went further (6.79x<!-- claim: 06_nyc_taxi_pipeline/stage1_download.json | rows[workers=8].speedup_vs_first | {:.2f}x -->). These numbers belong to that VM's network path, and the single-thread runs varied a lot (see the mean ± sd), so they are not a general rule. Some transfers ended early without an error; the downloader compares every file with its `Content-Length`, retries short ones, and the table counts the retries (they are included in the times).
 
 ### Stage 2: clean and summarise (CPU-bound)
 
@@ -84,7 +84,7 @@ Threads help a lot here: 3.71x<!-- claim: 06_nyc_taxi_pipeline/stage1_download.j
 | processes | 4 | 2.64 | 2.60 ± 0.17 | 2.26x | 0.56 | yes |
 <!-- /table -->
 
-**Threads helped here, and slightly more than processes** (default settings): 2.14x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | rows[method=threads,workers=4].speedup | {:.2f}x --> with 4 threads against 2.26x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | rows[method=processes,workers=4].speedup | {:.2f}x --> with 4 processes. That looks like it breaks the rule from 01, but most of this work does not run as Python bytecode: PyArrow decodes Parquet in C++ and pandas does the comparisons, date arithmetic and group counts in compiled code, and both release the GIL while they do it. The Python part is only the glue between those calls.
+**Threads helped here about as much as processes** (default settings): 2.14x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | rows[method=threads,workers=4].speedup | {:.2f}x --> with 4 threads against 2.26x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | rows[method=processes,workers=4].speedup | {:.2f}x --> with 4 processes, a gap too small to rank on one machine. That looks like it breaks the rule from 01, but most of this work does not run as Python bytecode: PyArrow decodes Parquet in C++ and pandas does the comparisons, date arithmetic and group counts in compiled code, and both release the GIL while they do it. The Python part is only the glue between those calls.
 
 There is a second effect I checked instead of guessing. PyArrow has its own thread pool, so even the "sequential" run already uses several cores while it decodes a file. I ran stage 2 again with Arrow limited to one thread (`OMP_NUM_THREADS=1`, results in `stage2_cpu_arrow_1_thread.json`):
 
@@ -113,7 +113,7 @@ With one Arrow thread the sequential run got slower (8.43 s<!-- claim: 06_nyc_ta
 | 1 | `--bind-to none` (extra run) | 6.09 | 6.11 ± 0.13 | 1.33x | 1.02x | 1.33 | 6.94 | yes |
 <!-- /table -->
 
-MPI with 4 ranks reached 3.41x<!-- claim: 06_nyc_taxi_pipeline/stage3_mpi.json | rows[ranks=4].speedup_vs_1_rank | {:.2f}x --> over 1 rank (2.37 s<!-- claim: 06_nyc_taxi_pipeline/stage3_mpi.json | rows[ranks=4].mean_s | {:.2f} s -->), about the same wall time as 4 threads in stage 2 (2.81 s<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | rows[method=threads,workers=4].mean_s | {:.2f} s -->). The 1-rank run itself took 8.14 s<!-- claim: 06_nyc_taxi_pipeline/stage3_mpi.json | rows[ranks=1].mean_s | {:.2f} s -->, slower than stage 2's sequential run. My explanation, which the stage 2 control run above supports: Open MPI binds each rank to one core by default, so a single rank cannot use PyArrow's extra threads the way the sequential Python run can. That makes MPI's speedup look better than its absolute time. Starting the ranks added about one second each time (the "wall time incl. start-up" column). All three rank counts produced summaries identical to the sequential run. On one machine MPI bought nothing over a thread pool; it would matter with more months than one machine can hold or process in time.
+MPI with 4 ranks reached 3.41x<!-- claim: 06_nyc_taxi_pipeline/stage3_mpi.json | rows[ranks=4].speedup_vs_1_rank | {:.2f}x --> over 1 rank and 2.61x<!-- claim: 06_nyc_taxi_pipeline/stage3_mpi.json | rows[ranks=4].speedup_vs_sequential | {:.2f}x --> over sequential Python (2.37 s<!-- claim: 06_nyc_taxi_pipeline/stage3_mpi.json | rows[ranks=4].mean_s | {:.2f} s -->), a little faster than 4 threads in stage 2 (2.81 s<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | rows[method=threads,workers=4].mean_s | {:.2f} s -->). The 1-rank run itself took 8.14 s<!-- claim: 06_nyc_taxi_pipeline/stage3_mpi.json | rows[ranks=1].mean_s | {:.2f} s -->, slower than stage 2's sequential run. The saved binding report (`bindings` in `stage3_mpi.json`) explains it: Open MPI bound the 1-rank and 2-rank runs to one core per rank, so a single rank could not use PyArrow's extra threads the way the sequential Python run can; the 4 ranks were not bound. The extra `--bind-to none` row supports this: one unbound rank ran about as fast as sequential Python. That is why the speedup vs 1 rank looks better than the speedup vs sequential. Starting the ranks added about one second each time (the "wall time incl. start-up" column). All three rank counts produced summaries identical to the sequential run. On one machine MPI gave about the same benefit as a pool of threads or processes; it would matter with more months than one machine can hold or process in time.
 
 ![Speedup by stage](../figures/06_speedup_by_stage.svg)
 
@@ -154,7 +154,7 @@ The tests build the same database from the synthetic fixtures and check all five
 
 ```bash
 python -m nyc_taxi.download                  # 12 files into data/nyc_taxi/ (sizes in the manifest above)
-python -m nyc_taxi.stage1_io                 # downloads the whole year 9 times (3 settings x 3 runs) into temporary folders
+python -m nyc_taxi.stage1_io                 # downloads the whole year 12 times (3 settings x (1 warm-up + 3 runs)) into temporary folders
 python -m nyc_taxi.stage2_cpu
 python -m nyc_taxi.stage3_mpi                # needs an MPI runtime and mpi4py
 python -m nyc_taxi.stage4_sql

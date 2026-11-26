@@ -1,10 +1,8 @@
-# 01 Threads vs processes (from Lab 2)
-
-Originally Lab 2 of DSAI3202 (UDST, Spring 2025): my first threads-and-processes notebook. Fixed and turned into a script in 2026.
+# 01 Threads vs processes
 
 ## What it is
 
-Two CPU-bound pure-Python loops from the lab: add n random integers, and join n random characters into a string. I run them five ways and time each one 5 times:
+Two CPU-bound pure-Python loops: add n random integers, and join n random characters into a string. I run them five ways; each configuration runs once untimed as a warm-up, then 5 timed runs, and the median counts:
 
 - sequential (one after the other),
 - one thread per function (2 threads), one process per function (2 processes),
@@ -32,10 +30,10 @@ Threads made this work slower, not faster: 0.93x<!-- claim: 01_threads_vs_proces
 
 Rule I take from this: for CPU-bound pure-Python code, threads do not help; use processes (or move the loop into a library that releases the GIL, see 02 and 06). Python 3.13 has an optional free-threaded build without the GIL; I did not test it here.
 
-## What was wrong in 2025 and how I fixed it
+## Bugs fixed in the earlier version
 
 - **Different workload in the process cell.** The notebook's "processes" cell ran the numbers function twice instead of numbers plus letters, so its speedup compared two different jobs. Now every configuration runs the same tasks and must return the same answer.
-- **Wrong p in the efficiency.** Efficiency was divided by `np = 4` although only 2 workers ran. Efficiency is now speedup divided by the real number of workers (`bench_common.efficiency`); a regression test runs the 2025 notebook cell and shows it fails the check.
+- **Wrong p in the efficiency.** Efficiency was divided by `np = 4` although only 2 workers ran. Efficiency is now speedup divided by the real number of workers (`bench_common.efficiency`); a regression test checks it with 2 workers.
 - **Windows (spawn) could not run the process cell,** because the worker functions were defined inside the notebook. They now live in `threads_vs_processes/workloads.py`, and the notebook imports them.
 - Two identical "two threads" cells with different labels were removed, and Amdahl's law now uses the number of workers instead of infinitely many.
 
@@ -47,4 +45,4 @@ python -m threads_vs_processes.benchmark --n 1000000 --repeats 3 --no-save    # 
 python -m pytest 01_threads_vs_processes
 ```
 
-The notebook (`First_trials_with_threads_and_processes_with_performance_metrics.ipynb`) is the fixed 2025 notebook. It runs headless in the tests with `python tools/run_notebooks.py`.
+The notebook (`threads_vs_processes.ipynb`) runs the same workloads step by step. CI runs it headless with `python tools/run_notebooks.py`.

@@ -1,115 +1,130 @@
-# python-concurrency-benchmarks
+# Python concurrency benchmarks
 
-Originally built for DSAI3202 Parallel & Distributed Computing, UDST, Spring 2025. Fixed and extended in 2026.
+[![CI](https://github.com/maryam843/python-concurrency-benchmarks/actions/workflows/ci.yml/badge.svg)](https://github.com/maryam843/python-concurrency-benchmarks/actions/workflows/ci.yml)
 
-## In plain English
+Tested Python benchmarks that measure when threads, processes and MPI make a program faster, ending in a 4-stage pipeline over 48,722,602<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | yearly.rows_raw | {:,} --> NYC taxi trips. Every parallel answer is checked against the sequential answer before its time counts.
 
-1. **What it is:** my measured guide to when threads, processes and MPI actually make Python faster, built from five of my DSAI3202 labs plus one new real-data pipeline.
-2. **Problem and who it helps:** people add threads or processes to slow Python code and get no speedup, a slowdown, or a wrong answer; this shows which tool fits which kind of work, with the numbers.
-3. **How it works:** a job (sums, squares, sensor readings, NYC taxi trips) goes in; it is split into pieces and run sequentially, with threads, with processes and with MPI; every version must give the same answer before its time counts; the output is a results file per experiment and tables and charts made from those files.
-4. **2025 vs 2026:** in 2025 I wrote the labs (threads vs processes, parallel sum, connection pool, sensor monitor, MPI on two university VMs). In 2026 I fixed the bugs an audit found (a 32-bit overflow, a missing semaphore, a crashing thread, wrong formulas), wrote tests for all of it, and **added** the NYC taxi pipeline and a replay of real air-quality readings.
-5. **Main honest result:** processes gave up to 3.77x<!-- claim: 02_parallel_sum/parallel_sum.json | rows[n=100000000,method=processes_shared_array_int64].speedup | {:.2f}x --> on pure-Python CPU work where threads gave 0.96x<!-- claim: 02_parallel_sum/parallel_sum.json | rows[n=100000000,method=threads].speedup | {:.2f}x -->, and threads gave 3.71x<!-- claim: 06_nyc_taxi_pipeline/stage1_download.json | rows[workers=4].speedup_vs_first | {:.2f}x --> on downloads. Caveat: all 2026 runs are on one 4-core cloud machine, so the timings are specific to it.
-6. **Why it matters for jobs in Qatar:** data teams in energy, banking, aviation and government process large files every day; choosing the right kind of parallelism, and proving the answer is still correct, saves compute time and avoids silent errors.
+## Key results
 
-**30-second version:** I took my parallel-computing labs, reproduced and fixed their bugs, and turned them into a tested, measured guide. Threads help when the program waits (downloads) or when the library does the work in C (PyArrow, pandas); processes help for pure-Python number crunching; vectorising with NumPy can be as fast as four processes; MPI is for when one machine is not enough.
+All timings are medians from one run of `tools/run_benchmarks.py` on one 4-core cloud VM; speedups are against the sequential version.
 
-> Demo video: placeholder. I will record a short screen capture of the live sensor monitor and the pipeline myself and link it here.
+- **Pure-Python CPU work (n = 1e7):** 4 processes ran 3.86x<!-- claim: 01_threads_vs_processes/threads_vs_processes_n10000000.json | rows[config=processes_2_per_function].speedup | {:.2f}x --> faster; 4 threads were slightly slower than sequential at 0.95x<!-- claim: 01_threads_vs_processes/threads_vs_processes_n10000000.json | rows[config=threads_2_per_function].speedup | {:.2f}x --> (the GIL lets only one thread run Python code at a time).
+- **Sum of 1 to 1e8:** NumPy on one core reached 4.33x<!-- claim: 02_parallel_sum/parallel_sum.json | rows[n=100000000,method=numpy_vectorised].speedup | {:.2f}x -->, ahead of the best 4-process version (3.79x<!-- claim: 02_parallel_sum/parallel_sum.json | rows[n=100000000,method=processes_queue].speedup | {:.2f}x -->). At this size the NumPy version builds fresh 80 MB arrays, so its time follows the memory speed of the VM, not its CPU; the size of its lead changes from machine to machine.
+- **A year of taxi trips with MPI:** 4 ranks on one machine were 2.61x<!-- claim: 06_nyc_taxi_pipeline/stage3_mpi.json | rows[ranks=4].speedup_vs_sequential | {:.2f}x --> faster than sequential Python, with an identical yearly summary. Downloading the 12 files with 4 threads was 3.71x<!-- claim: 06_nyc_taxi_pipeline/stage1_download.json | rows[workers=4].speedup_vs_first | {:.2f}x --> faster on that VM's network.
+- **Where parallelism did not pay:** `Pool.map` over a million tiny squares ran at 0.352x<!-- claim: 03_connection_pool/pool_squares.json | rows[n=1000000,method=pool_map].speedup | {:.3f}x --> (slower than a plain loop), and for cleaning the taxi data 4 threads (2.14x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | rows[method=threads,workers=4].speedup | {:.2f}x -->) and 4 processes (2.26x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | rows[method=processes,workers=4].speedup | {:.2f}x -->) are too close to rank.
 
-## The problem
+![Speedup by stage of the NYC taxi pipeline: downloads with threads, cleaning and summarising with threads and processes, and MPI ranks against 1 rank](figures/06_speedup_by_stage.svg)
 
-Python has a global interpreter lock (GIL): only one thread runs Python bytecode at a time. So "add threads" does not speed up a Python loop, "add processes" costs start-up time and data copying, and a parallel version can be fast and wrong (my 2025 parallel sum returned 1,784,293,664 instead of 500,000,500,000 without any error). I wanted answers I could defend with my own measurements, not rules copied from a blog.
+**Tools:** Python, threading, multiprocessing, MPI (mpi4py), NumPy, pandas, PyArrow, SQLite, pytest, Hypothesis, GitHub Actions
 
 ## Data
 
-- **Synthetic workloads** (random numbers, ranges, squares) for folders 01 to 03 and 05, seeded so every run is reproducible.
-- **UCI Air Quality** (De Vito, 2008, CC BY 4.0): hourly temperatures from one station, replayed as live sensor readings in folder 04 (added in 2026).
-- **NYC TLC yellow taxi trips, all of 2025**: 12 monthly Parquet files, 48,722,602<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | yearly.rows_raw | {:,} --> trips (folder 06, added in 2026).
+| Dataset | Source and licence | Size | How to get it |
+|---|---|---|---|
+| NYC TLC yellow taxi trips, January to December 2025, plus the taxi zone lookup | [NYC TLC Trip Record Data](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page), published by the City of New York under the [NYC.gov terms of use](https://www.nyc.gov/home/terms-of-use.page) | 12 Parquet files, 829,973,299<!-- claim: 06_nyc_taxi_pipeline/manifest.json | total_bytes | {:,} --> bytes, 48,722,602<!-- claim: 06_nyc_taxi_pipeline/manifest.json | total_rows | {:,} --> trips | `python -m nyc_taxi.download` (checks each file against the SHA-256 values in `results/06_nyc_taxi_pipeline/manifest.json`) |
+| UCI Air Quality, hourly temperatures from one station | De Vito, S. (2008), UCI Machine Learning Repository, [doi:10.24432/C59K5F](https://doi.org/10.24432/C59K5F), CC BY 4.0 | zip of 1,543,989 bytes | `python 04_sensor_monitor/download_air_quality.py` (SHA-256 checked) |
+| Generated workloads (sums, squares, random loops) | made in code, seeded | n up to 1e8 | none needed |
 
-Datasets are downloaded by scripts and never committed. The tests and CI use small synthetic fixtures in the same formats (`tests/fixtures/`), and a guard stops any test from reaching the internet.
+The datasets are downloaded into `data/` (ignored by git) and never committed, because of their size and so that each user takes them from the publisher under its terms. The tests and CI use small synthetic files in the same formats (`tests/fixtures/`), and a guard stops any test from reaching the internet.
 
-## Method
+## Approach
 
-Every experiment checks correctness before timing (closed form n(n+1)/2, sequential result, or a separate pandas implementation), repeats each measurement (3, 5 or 10 runs), reports mean and standard deviation, and computes efficiency with the number of workers that really ran. Results are JSON files in `results/` with the OS, CPU, core count, memory, Python and package versions, timestamp and seed. The tables in the READMEs are generated from those files, and `tools/check_readme_claims.py` fails if any number in a README does not match them.
+1. **Answer first, then time.** Each parallel version must return the same result as the sequential one (or a closed form such as n(n+1)/2, or a separate pandas version) before its time is recorded. This caught an earlier parallel sum that used a 32-bit shared array and silently returned 1,784,293,664 instead of 500,000,500,000; it now uses `Array('q')` and a regression test.
+2. **One timing method everywhere.** One untimed warm-up, then the median of several runs (5 in folders 01 and 02, 3 in 03 and 06, 10 in 05). Speedup is the sequential median over the method's median; efficiency divides by the workers that actually ran.
+3. **Five small studies:** two pure-Python loops on threads vs processes (01); a sum of 1 to n six ways, with Amdahl and Gustafson checks (02); a semaphore-guarded connection pool for 8 processes sharing 2 connections, plus `Pool` overhead (03); producer and consumer threads with a `Condition` replaying UCI temperatures (04); MPI squares with int64 arrays and `Gatherv` or reduce only (05).
+4. **A real pipeline (06):** download with threads and a SHA-256 manifest; clean with six ordered rules that remove 10.33%<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | yearly.removed_share | {:.2%} --> of trips; summarise each month as sums and counts (not means), so any split across threads, processes or MPI ranks gives an identical yearly result; answer five questions in SQLite.
+5. **Control runs to test the explanations.** Cleaning was repeated with PyArrow limited to one thread: then processes reached 3.59x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu_arrow_1_thread.json | rows[method=processes,workers=4].speedup | {:.2f}x --> and threads only 1.92x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu_arrow_1_thread.json | rows[method=threads,workers=4].speedup | {:.2f}x -->, which shows that threads helped before because PyArrow releases the GIL. An extra MPI run with `--bind-to none` shows why 1 bound rank is slower than plain Python.
+6. **Results as data.** Every result is a JSON file in `results/` with the OS, CPU, core count, memory and package versions. Figures and README tables are drawn from those files, and `tools/check_readme_claims.py` fails CI if a number in a README differs from them.
 
 ## Results
 
-| Folder | Question | Key result (4-core machine) |
-|---|---|---|
-| [01 threads vs processes](01_threads_vs_processes/) (Lab 2) | Do threads speed up pure-Python CPU work? | threads 0.95x<!-- claim: 01_threads_vs_processes/threads_vs_processes_n10000000.json | rows[config=threads_2_per_function].speedup | {:.2f}x -->, processes 3.86x<!-- claim: 01_threads_vs_processes/threads_vs_processes_n10000000.json | rows[config=processes_2_per_function].speedup | {:.2f}x --> with 4 workers |
-| [02 parallel sum](02_parallel_sum/) (Lab 3) | When do processes pay off, and what about NumPy? | n = 1e6: best process version 1.44x<!-- claim: 02_parallel_sum/parallel_sum.json | rows[n=1000000,method=processes_shared_array_int64].speedup | {:.2f}x -->; n = 1e8: 3.77x<!-- claim: 02_parallel_sum/parallel_sum.json | rows[n=100000000,method=processes_shared_array_int64].speedup | {:.2f}x -->; NumPy on one core 4.33x<!-- claim: 02_parallel_sum/parallel_sum.json | rows[n=100000000,method=numpy_vectorised].speedup | {:.2f}x --> |
-| [03 connection pool](03_connection_pool/) (Assignment 1) | Semaphore-guarded pool; pool overhead | 8<!-- claim: 03_connection_pool/connection_pool_run.json | acquired | {} --> of 8 processes served, never more than 2<!-- claim: 03_connection_pool/connection_pool_run.json | max_concurrent_holders | {} --> at once; squaring 1e6 numbers with `Pool.map` ran at 0.352x<!-- claim: 03_connection_pool/pool_squares.json | rows[n=1000000,method=pool_map].speedup | {:.3f}x --> |
-| [04 sensor monitor](04_sensor_monitor/) (Lab 4) | Producer/consumer threads with a Condition | processor survives, queue drained every interval, averages match pandas; real UCI readings (added in 2026) |
-| [05 MPI](05_mpi_multi_node/) (Lab 6) | Can n = 1e8 run on one machine? | 2025 code at n = 1e7: 2969 MB<!-- claim: 05_mpi_multi_node/earlier_calculate_squares.json | rows[n=10000000,ranks=1].peak_rss_mb_rank0 | {:.0f} MB --> on rank 0; 2026 at n = 1e8: 1573 MB<!-- claim: 05_mpi_multi_node/mpi_squares_scaling_gatherv.json | rows[n=100000000,ranks=1].peak_rss_mb_rank0_max | {:.0f} MB --> (gather all) or 238 MB<!-- claim: 05_mpi_multi_node/mpi_squares_scaling_reduce_only.json | rows[n=100000000,ranks=4].peak_rss_mb_rank0_max | {:.0f} MB --> per rank (reduce only, 4 ranks) |
-| [06 NYC taxi pipeline](06_nyc_taxi_pipeline/) (added in 2026) | The rule of thumb on real data | downloads: 4 threads 3.71x<!-- claim: 06_nyc_taxi_pipeline/stage1_download.json | rows[workers=4].speedup_vs_first | {:.2f}x -->; cleaning: 4 threads 2.14x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | rows[method=threads,workers=4].speedup | {:.2f}x -->, 4 processes 2.26x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | rows[method=processes,workers=4].speedup | {:.2f}x -->; MPI 4 ranks 3.41x<!-- claim: 06_nyc_taxi_pipeline/stage3_mpi.json | rows[ranks=4].speedup_vs_1_rank | {:.2f}x --> |
+Medians on one 4-core VM (Intel Xeon 2.10 GHz, 15.7 GB, Python 3.12). Every method returned the same answer as the sequential baseline.
 
-![Speedup by stage, NYC taxi pipeline](figures/06_speedup_by_stage.svg)
+| Workload | Sequential baseline | 4 threads | 4 processes | Other |
+|---|---|---|---|---|
+| 01 pure-Python loops, n = 1e7 | 6.11 s<!-- claim: 01_threads_vs_processes/threads_vs_processes_n10000000.json | rows[config=sequential].median_s | {:.2f} s --> | 0.95x<!-- claim: 01_threads_vs_processes/threads_vs_processes_n10000000.json | rows[config=threads_2_per_function].speedup | {:.2f}x --> | 3.86x<!-- claim: 01_threads_vs_processes/threads_vs_processes_n10000000.json | rows[config=processes_2_per_function].speedup | {:.2f}x --> | |
+| 02 sum of 1 to 1e8 | 1.11 s<!-- claim: 02_parallel_sum/parallel_sum.json | rows[n=100000000,method=sequential].median_s | {:.2f} s --> | 0.96x<!-- claim: 02_parallel_sum/parallel_sum.json | rows[n=100000000,method=threads].speedup | {:.2f}x --> | Queue 3.79x<!-- claim: 02_parallel_sum/parallel_sum.json | rows[n=100000000,method=processes_queue].speedup | {:.2f}x -->, shared Array 3.77x<!-- claim: 02_parallel_sum/parallel_sum.json | rows[n=100000000,method=processes_shared_array_int64].speedup | {:.2f}x -->, `Pool.map` 3.66x<!-- claim: 02_parallel_sum/parallel_sum.json | rows[n=100000000,method=pool_map].speedup | {:.2f}x --> | NumPy, 1 core: 4.33x<!-- claim: 02_parallel_sum/parallel_sum.json | rows[n=100000000,method=numpy_vectorised].speedup | {:.2f}x --> |
+| 02 sum of 1 to 1e6 | 0.0105 s<!-- claim: 02_parallel_sum/parallel_sum.json | rows[n=1000000,method=sequential].median_s | {:.4f} s --> | 0.88x<!-- claim: 02_parallel_sum/parallel_sum.json | rows[n=1000000,method=threads].speedup | {:.2f}x --> | best: shared Array 1.44x<!-- claim: 02_parallel_sum/parallel_sum.json | rows[n=1000000,method=processes_shared_array_int64].speedup | {:.2f}x --> | |
+| 03 square 1e6 numbers | 0.0542 s<!-- claim: 03_connection_pool/pool_squares.json | rows[n=1000000,method=sequential].median_s | {:.4f} s --> | | `Pool.map` 0.352x<!-- claim: 03_connection_pool/pool_squares.json | rows[n=1000000,method=pool_map].speedup | {:.3f}x --> | |
+| 06 stage 1: download 12 files | 42.77 s<!-- claim: 06_nyc_taxi_pipeline/stage1_download.json | rows[workers=1].median_s | {:.2f} s --> | 3.71x<!-- claim: 06_nyc_taxi_pipeline/stage1_download.json | rows[workers=4].speedup_vs_first | {:.2f}x --> | | 8 threads: 6.79x<!-- claim: 06_nyc_taxi_pipeline/stage1_download.json | rows[workers=8].speedup_vs_first | {:.2f}x --> |
+| 06 stage 2: clean and summarise | 5.95 s<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | rows[method=sequential].median_s | {:.2f} s --> | 2.14x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | rows[method=threads,workers=4].speedup | {:.2f}x --> | 2.26x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | rows[method=processes,workers=4].speedup | {:.2f}x --> | |
+| 06 stage 2, PyArrow on one thread | 8.50 s<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu_arrow_1_thread.json | rows[method=sequential].median_s | {:.2f} s --> | 1.92x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu_arrow_1_thread.json | rows[method=threads,workers=4].speedup | {:.2f}x --> | 3.59x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu_arrow_1_thread.json | rows[method=processes,workers=4].speedup | {:.2f}x --> | |
+| 06 stage 3: MPI over the 12 months | 6.20 s<!-- claim: 06_nyc_taxi_pipeline/stage3_mpi.json | sequential.median_s | {:.2f} s --> | | | 4 ranks: 2.61x<!-- claim: 06_nyc_taxi_pipeline/stage3_mpi.json | rows[ranks=4].speedup_vs_sequential | {:.2f}x --> (3.41x<!-- claim: 06_nyc_taxi_pipeline/stage3_mpi.json | rows[ranks=4].speedup_vs_1_rank | {:.2f}x --> vs 1 rank) |
 
-### The rule of thumb, and the numbers behind it
-
-- **Threads for waiting.** Downloading 12 files: 3.71x<!-- claim: 06_nyc_taxi_pipeline/stage1_download.json | rows[workers=4].speedup_vs_first | {:.2f}x --> with 4 threads (folder 06). A thread waiting on the network releases the GIL.
-- **Threads also work when a C library does the work.** PyArrow and pandas release the GIL, so cleaning a year of taxi trips got 2.14x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | rows[method=threads,workers=4].speedup | {:.2f}x --> from 4 threads, a bit more than 4 processes (2.26x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu.json | rows[method=processes,workers=4].speedup | {:.2f}x -->). With PyArrow's own threading turned off, processes won instead (3.59x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu_arrow_1_thread.json | rows[method=processes,workers=4].speedup | {:.2f}x --> against 1.92x<!-- claim: 06_nyc_taxi_pipeline/stage2_cpu_arrow_1_thread.json | rows[method=threads,workers=4].speedup | {:.2f}x -->), so check what the library already does before adding workers.
-- **Processes for pure-Python CPU work, when each task is big.** 3.86x<!-- claim: 01_threads_vs_processes/threads_vs_processes_n10000000.json | rows[config=processes_2_per_function].speedup | {:.2f}x --> (01) and 3.77x<!-- claim: 02_parallel_sum/parallel_sum.json | rows[n=100000000,method=processes_shared_array_int64].speedup | {:.2f}x --> (02) on 4 cores, but a loss on small tasks: 0.352x<!-- claim: 03_connection_pool/pool_squares.json | rows[n=1000000,method=pool_map].speedup | {:.3f}x --> for `Pool.map` over a million tiny squares (03), where sending data between processes costs more than the work.
-- **Vectorise first.** One NumPy process summed 1..1e8 at 4.33x<!-- claim: 02_parallel_sum/parallel_sum.json | rows[n=100000000,method=numpy_vectorised].speedup | {:.2f}x -->, level with four processes (with a large spread between its runs; see 02).
-- **MPI to scale out, not to speed up a light job on one machine.** Its biggest win here was memory (05); for the taxi months, 4 ranks took about as long as 4 threads (06). In 2025 I ran MPI across two university Linux VMs; in 2026 everything ran on one machine.
-
-## What went wrong in 2025 and how I fixed it
-
-| Bug (2025) | What happened | Fix (2026) | Where |
-|---|---|---|---|
-| int32 overflow | `multiprocessing.Array('i')` wrapped each partial sum: 1,784,293,664 instead of 500,000,500,000 at n = 1e6, no error | `Array('q')` (64-bit); regression test runs the 2025 file | 02 |
-| stdlib shadowing | files named `multiprocessing.py` and `threading.py` were imported instead of the real modules | renamed into a package; a test fails on any stdlib-named file | 02 |
-| missing semaphore | README described one, code had none: 2 of 8 processes got a connection, 6 gave up | `multiprocessing.Semaphore` with blocking acquire and timeout | 03 |
-| sensor thread crash | averages dict held a list, then a float: `'float' object has no attribute 'append'`, and the queue grew without bound | readings and averages kept apart, queue drained every interval, Condition added | 04 |
-| wrong efficiency p | efficiency divided by 4 when 2 workers ran; the process cell also ran a different workload | efficiency = speedup / real workers; same workload everywhere | 01 |
-| wrong Gustafson | N - (1 - P)N (3.60) instead of N - (1 - P)(N - 1) (3.70) for N = 4, P = 0.9 | fixed formula in `laws.py` | 02 |
-
-Also fixed: worker functions that could not be pickled under "spawn" (Windows), a notebook process cell that failed under spawn, tests that imported functions that did not exist, a test runner that ran zero tests and passed, `mpi_program.py` crashing with one rank, and n = 1e8 running out of memory in the MPI squares. Each bug has a regression test that runs the 2025 code from its import commit and shows it fails a check that the 2026 code passes.
+Two results are about correctness and memory rather than speed. The connection pool served 8<!-- claim: 03_connection_pool/connection_pool_run.json | acquired | {} --> of 8 processes and never had more than 2<!-- claim: 03_connection_pool/connection_pool_run.json | max_concurrent_holders | {} --> holders at once. For the MPI squares, rank 0 peaked at 1,573 MB<!-- claim: 05_mpi_multi_node/mpi_squares_scaling_gatherv.json | rows[n=100000000,ranks=1].peak_rss_mb_rank0_max | {:,.0f} MB --> at n = 1e8 with `Gatherv` and 238 MB<!-- claim: 05_mpi_multi_node/mpi_squares_scaling_reduce_only.json | rows[n=100000000,ranks=4].peak_rss_mb_rank0_max | {:,.0f} MB --> with reduce only on 4 ranks, against 2,969 MB<!-- claim: 05_mpi_multi_node/earlier_calculate_squares.json | rows[n=10000000,ranks=1].peak_rss_mb_rank0 | {:,.0f} MB --> at n = 1e7 for the original list-based script. Full tables, with mean and standard deviation for every row, are in each folder's README.
 
 ## Limitations
 
-- All 2026 measurements are from one 4-core cloud container. Timings depend on the machine; the ratios are more portable than the seconds, and even those vary (some standard deviations in 02 and 05 are large).
-- No multi-machine run in 2026. The two-VM MPI run is 2025 evidence (a screenshot in my private coursework repo), not re-verified here.
-- One year of taxi data (829,973,299<!-- claim: 06_nyc_taxi_pipeline/manifest.json | total_bytes | {:,} --> bytes of Parquet) is a real dataset, not "big data". The pipeline shows method differences, not scale.
-- The sensor replay uses one station's temperature series for all sensors, offset by a week each.
-- I did not test Python's free-threaded build (no GIL).
-
-## What I learned
-
-- A parallel version is only faster if it is also right; I now check the answer before I look at the time.
-- The GIL is not "threads are useless": they were my best tool for downloads and for pandas/PyArrow work.
-- Process start-up and pickling decide small jobs; the chunk size mattered more than the number of workers.
-- Libraries already use threads inside, so adding workers on top can fight for the same cores; I only found this by testing my own explanation.
-- Memory, not CPU, was the limit for the MPI squares, and a typed array fixed what more ranks could not.
-- Tests that run my old code against my new code made every fix concrete and easy to explain.
-- Downloads can end early without an error, so I check sizes and hashes now.
+- Every timing comes from one 4-core cloud VM. Seconds do not carry over to other machines, and the ratios move too: the NumPy lead depends on memory speed, and close gaps such as threads vs processes for cleaning can change order on another VM.
+- MPI ran on one machine only. There is no multi-machine measurement, so the results say nothing about network cost between nodes.
+- Download speedups depend on the network path of that VM and are not a general rule.
+- A year of taxi data is a real dataset but not "big data", and December fares behave differently from other months for a reason not yet known. Python's free-threaded build (no GIL) was not tested.
 
 ## How to run
 
+Python 3.12. The MPI parts need an MPI runtime first (Linux: `sudo apt install openmpi-bin libopenmpi-dev`).
+
 ```bash
-python3.12 -m venv .venv && . .venv/bin/activate      # Windows: .venv\Scripts\activate
+python3.12 -m venv .venv && . .venv/bin/activate
 pip install -r requirements-dev.txt && pip install -e .
-pip install -r requirements-mpi.txt                   # optional, needs an MPI runtime (Linux: apt install openmpi-bin libopenmpi-dev)
-
-python -m pytest                                      # all tests (MPI tests skip without MPI)
-PCB_START_METHOD=spawn python -m pytest               # force the Windows/macOS start method on Linux
-python tools/check_readme_claims.py                   # every README number against results/
-python tools/pii_scan.py --worktree                   # personal data and secrets, full git history
-
-python tools/run_benchmarks.py                        # download the data and regenerate results/ and figures/
+pip install -r requirements-mpi.txt
 ```
 
-Each folder's README has its own commands. The folders:
+Tests, lint and checks, as CI runs them (MPI tests skip without MPI; in a root shell such as a container, set `PCB_ALLOW_ROOT=1` so Open MPI will start):
 
-- `01_threads_vs_processes/`, `02_parallel_sum/`, `03_connection_pool/`, `04_sensor_monitor/`, `05_mpi_multi_node/`: the 2025 labs, fixed.
-- `06_nyc_taxi_pipeline/`: added in 2026.
-- `results/` (JSON), `figures/` (SVG from results), `docs/DECISIONS.md` (why each design choice), `tools/`, `tests/`.
+```bash
+python -m pytest -q --cov --cov-report=term --cov-fail-under=85
+PCB_START_METHOD=spawn python -m pytest -q
+ruff check .
+python tools/check_readme_claims.py
+python tools/pii_scan.py --worktree
+```
 
-The git history starts with one import commit per 2025 branch, dated with that branch's last 2025 commit, followed by the 2026 fixes.
+On Windows PowerShell, activate with `.venv\Scripts\activate` and force the start method with `$env:PCB_START_METHOD="spawn"`.
 
-## Credits
+Regenerate every file in `results/` and `figures/` (downloads the datasets; each pass over the taxi year is 829,973,299<!-- claim: 06_nyc_taxi_pipeline/manifest.json | total_bytes | {:,} --> bytes):
 
-See [CREDITS.md](CREDITS.md): course-provided files (the Lab 6 squares script, the mpi4py example, the Lab 2 notebook headings), the NYC TLC and UCI datasets and their terms, and the libraries used.
+```bash
+python tools/run_benchmarks.py
+```
 
-## Licence
+Single demos:
 
-MIT, see [LICENSE](LICENSE).
+```bash
+python -m threads_vs_processes.benchmark --n 1000000 --repeats 3 --no-save
+python 02_parallel_sum/main.py 1e7 4
+python 03_connection_pool/main.py
+python 04_sensor_monitor/main.py --mode data --duration 30
+mpiexec -n 4 python 05_mpi_multi_node/calculate_squares.py 1e8 --no-gather
+mpiexec -n 4 python 06_nyc_taxi_pipeline/stage3_mpi.py
+```
+
+The notebook version of folder 01 is `01_threads_vs_processes/threads_vs_processes.ipynb`.
+
+## Repo structure
+
+```text
+python-concurrency-benchmarks/
+  src/bench_common/          shared timing (warm-up, median) and JSON result writer
+  01_threads_vs_processes/   pure-Python loops on threads vs processes, plus the notebook
+  02_parallel_sum/           sum of 1 to n: threads, Queue, shared Array, Pool.map, NumPy
+  03_connection_pool/        semaphore-guarded pool; squares with Pool and executors
+  04_sensor_monitor/         sensor threads, queue, Condition; replays UCI temperatures
+  05_mpi_multi_node/         MPI squares with Gatherv or reduce; scaling runner
+  06_nyc_taxi_pipeline/      download, clean and summarise, MPI, SQLite (sql/)
+  results/                   every result as JSON, with machine details
+  figures/                   SVG charts drawn from results/
+  tools/                     run_benchmarks, make_figures, check_readme_claims, pii_scan, ...
+  tests/                     shared tests and synthetic fixtures
+  docs/DECISIONS.md          the reason for each design choice
+```
+
+Each numbered folder has its own README and tests.
+
+## Licence and credits
+
+Code under the MIT licence, see [LICENSE](LICENSE).
+
+- NYC Taxi and Limousine Commission (TLC) Trip Record Data, City of New York, used under the NYC.gov terms of use; the TLC gives no guarantee of accuracy.
+- De Vito, S. (2008). Air Quality [Dataset]. UCI Machine Learning Repository. https://doi.org/10.24432/C59K5F. CC BY 4.0.
+- `05_mpi_multi_node/calculate_squares.py` and the mpi4py send/recv example in `05_mpi_multi_node/mpi_program.py` were supplied with the original exercise and are modified here; the section headings of the folder 01 notebook also come from the original exercise. Details and the library list are in [CREDITS.md](CREDITS.md).

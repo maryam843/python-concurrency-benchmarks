@@ -27,7 +27,7 @@ def mpirun(ranks, script, *args, timeout=120):
 
 
 # ---------- unit tests ----------
-def test_chunk_counts_match_lab_split():
+def test_chunk_counts_match_original_split():
     assert chunk_counts(10, 4) == ([3, 3, 2, 2], [0, 3, 6, 8])
     assert chunk_counts(0, 3) == ([0, 0, 0], [0, 0, 0])
     with pytest.raises(ValueError):

@@ -472,6 +472,9 @@ L 467.833869 57.32752
       </g>
      </g>
     </g>
+    <g id="text_22">
+     <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #52514e" x="260.990349" y="148.648" transform="rotate(-90 260.990349 148.648)">speedup vs sequential</text>
+    </g>
    </g>
    <g id="patch_6">
     <path d="M 270.892693 248.44 
@@ -494,7 +497,7 @@ L 407.236584 197.286251
      <use xlink:href="#mf35b9502aa" x="407.236584" y="197.286251" style="fill: #2a78d6; stroke: #fcfcfb; stroke-width: 2"/>
     </g>
    </g>
-   <g id="text_22">
+   <g id="text_23">
     <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #52514e" x="415.236584" y="206.624493" transform="rotate(-0 415.236584 206.624493)">threads</text>
    </g>
    <g id="line2d_55">
@@ -521,10 +524,10 @@ z
      <use xlink:href="#mecc8dfacef" x="407.236584" y="194.517515" style="fill: #eb6834; stroke: #fcfcfb; stroke-width: 2"/>
     </g>
    </g>
-   <g id="text_23">
+   <g id="text_24">
     <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #52514e" x="415.236584" y="189.855405" transform="rotate(-0 415.236584 189.855405)">processes</text>
    </g>
-   <g id="text_24">
+   <g id="text_25">
     <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #0b0b0b" x="270.892693" y="42.856" transform="rotate(-0 270.892693 42.856)">Stage 2: clean + summarise (CPU)</text>
    </g>
   </g>
@@ -555,7 +558,7 @@ L 513.714671 48.856
        <use xlink:href="#mde899e0e46" x="513.714671" y="248.44" style="fill: #52514e; stroke: #52514e; stroke-width: 0.8"/>
       </g>
      </g>
-     <g id="text_25">
+     <g id="text_26">
       <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #52514e" x="513.714671" y="263.037656" transform="rotate(-0 513.714671 263.037656)">1</text>
      </g>
     </g>
@@ -570,7 +573,7 @@ L 556.998446 48.856
        <use xlink:href="#mde899e0e46" x="556.998446" y="248.44" style="fill: #52514e; stroke: #52514e; stroke-width: 0.8"/>
       </g>
      </g>
-     <g id="text_26">
+     <g id="text_27">
       <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #52514e" x="556.998446" y="263.037656" transform="rotate(-0 556.998446 263.037656)">2</text>
      </g>
     </g>
@@ -585,11 +588,11 @@ L 643.565996 48.856
        <use xlink:href="#mde899e0e46" x="643.565996" y="248.44" style="fill: #52514e; stroke: #52514e; stroke-width: 0.8"/>
       </g>
      </g>
-     <g id="text_27">
+     <g id="text_28">
       <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #52514e" x="643.565996" y="263.037656" transform="rotate(-0 643.565996 263.037656)">4</text>
      </g>
     </g>
-    <g id="text_28">
+    <g id="text_29">
      <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #52514e" x="605.692693" y="277.038438" transform="rotate(-0 605.692693 277.038438)">ranks</text>
     </g>
    </g>
@@ -702,6 +705,9 @@ L 704.163281 57.32752
       </g>
      </g>
     </g>
+    <g id="text_30">
+     <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #52514e" x="497.319761" y="148.648" transform="rotate(-90 497.319761 148.648)">speedup vs 1 rank</text>
+    </g>
    </g>
    <g id="patch_9">
     <path d="M 507.222105 248.44 
@@ -737,10 +743,10 @@ z
      <use xlink:href="#mbab7544c4c" x="643.565996" y="167.070953" style="fill: #1baf7a; stroke: #fcfcfb; stroke-width: 2"/>
     </g>
    </g>
-   <g id="text_29">
+   <g id="text_31">
     <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #52514e" x="651.565996" y="169.409195" transform="rotate(-0 651.565996 169.409195)">MPI ranks</text>
    </g>
-   <g id="text_30">
+   <g id="text_32">
     <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #0b0b0b" x="507.222105" y="42.856" transform="rotate(-0 507.222105 42.856)">Stage 3: MPI, months per rank</text>
    </g>
   </g>
@@ -751,7 +757,7 @@ L 182.766406 15.298438
 L 192.766406 15.298438 
 " style="fill: none; stroke-dasharray: 4.44,1.92; stroke-dashoffset: 0; stroke: #9a9994; stroke-width: 1.2"/>
    </g>
-   <g id="text_31">
+   <g id="text_33">
     <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #0b0b0b" x="200.766406" y="18.798438" transform="rotate(-0 200.766406 18.798438)">ideal (linear)</text>
    </g>
    <g id="line2d_83">
@@ -763,7 +769,7 @@ L 304.219531 15.298438
      <use xlink:href="#mf35b9502aa" x="294.219531" y="15.298438" style="fill: #2a78d6; stroke: #fcfcfb; stroke-width: 2"/>
     </g>
    </g>
-   <g id="text_32">
+   <g id="text_34">
     <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #0b0b0b" x="312.219531" y="18.798438" transform="rotate(-0 312.219531 18.798438)">threads</text>
    </g>
    <g id="line2d_84">
@@ -775,7 +781,7 @@ L 390.207031 15.298438
      <use xlink:href="#mecc8dfacef" x="380.207031" y="15.298438" style="fill: #eb6834; stroke: #fcfcfb; stroke-width: 2"/>
     </g>
    </g>
-   <g id="text_33">
+   <g id="text_35">
     <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #0b0b0b" x="398.207031" y="18.798438" transform="rotate(-0 398.207031 18.798438)">processes</text>
    </g>
    <g id="line2d_85">
@@ -787,7 +793,7 @@ L 487.997656 15.298438
      <use xlink:href="#mbab7544c4c" x="477.997656" y="15.298438" style="fill: #1baf7a; stroke: #fcfcfb; stroke-width: 2"/>
     </g>
    </g>
-   <g id="text_34">
+   <g id="text_36">
     <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #0b0b0b" x="495.997656" y="18.798438" transform="rotate(-0 495.997656 18.798438)">MPI ranks</text>
    </g>
   </g>

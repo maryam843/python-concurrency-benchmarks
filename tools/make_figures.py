@@ -80,12 +80,14 @@ def fig_taxi_speedup() -> Path | None:
         _line(ax, xs, [r["speedup"] for r in rows], i, method, dy)
     ax.set_title("Stage 2: clean + summarise (CPU)", loc="left", fontsize=10)
     ax.set_xlabel("workers")
+    ax.set_ylabel("speedup vs sequential")
     ax = axes[2]
     xs = [r["ranks"] for r in s3["rows"]]
     _ideal(ax, xs)
     _line(ax, xs, [r["speedup_vs_1_rank"] for r in s3["rows"]], 2, "MPI ranks")
     ax.set_title("Stage 3: MPI, months per rank", loc="left", fontsize=10)
     ax.set_xlabel("ranks")
+    ax.set_ylabel("speedup vs 1 rank")
     for a in axes:
         a.set_xticks(sorted({1, 2, 4, 8} & set(a.get_xticks().astype(int)) | set(xs)))
         a.set_ylim(bottom=0)
